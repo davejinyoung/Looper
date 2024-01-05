@@ -4,9 +4,9 @@ from django.template.loader import get_template
 from django.shortcuts import render
 
 
-def signup(request):
-    return render(request, 'signup.html')
+def signup(response):
+    return render(response, 'sign_in_out/signup.html')
 
 
-def login(request):
-    return render(request, 'login.html')
+def login(response):
+    return render(response, 'sign_in_out/login.html')
