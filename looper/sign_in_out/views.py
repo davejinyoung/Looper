@@ -5,8 +5,5 @@ from django.shortcuts import render
 
 
 def signup(response):
-    return render(response, 'sign_in_out/signup.html')
+    return render(response, 'registration/signup.html')
 
-
-def login(response):
-    return render(response, 'sign_in_out/login.html')
