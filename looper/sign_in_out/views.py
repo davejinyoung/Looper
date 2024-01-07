@@ -1,13 +1,15 @@
 from django.http import HttpResponse
 from django.template import Template, Context
 from django.template.loader import get_template
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login
 from django.shortcuts import render, redirect
 from .forms import RegisterForm
 
 
 def signup(request):
-    if request.method == "POST":
+    if request.user.is_authenticated:
+        return redirect('/home')
+    elif request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
