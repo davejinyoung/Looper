@@ -63,6 +63,24 @@
       <span id="place-address"></span>
     </div>
 
+    <form class="mx-5">
+      <div class="mb-3">
+        <label for="startingLocation" class="form-label">Starting Location</label>
+        <input type="email" class="form-control" id="startingLocation">
+      </div>
+      <div class="mb-3">
+        <label for="distance" class="form-label">Distance</label>
+        <input type="number" class="form-control" min="0" value="0" step=".1" id="distance">
+      </div>
+      <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="exampleCheck1">
+        <label class="form-check-label" for="exampleCheck1">Randomize Route</label>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+
+
     <!--
       The `defer` attribute causes the callback to execute after the full HTML
       document has been parsed. For non-blocking uses, avoiding race conditions,
