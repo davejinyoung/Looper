@@ -1,3 +1,5 @@
+const API_KEY = 'AIzaSyDg9dcCA0yCEzRwXzBD1ug667iSE7PXXB0';
+
 function initMap() {
   const map = new google.maps.Map(document.getElementById("map"), {
     center: { lat: 49.2827, lng: -123.1207 },
@@ -40,6 +42,13 @@ function initMap() {
 
     // Set the position of the marker using the place ID and location.
     // @ts-ignore This should be in @typings/googlemaps.
+    let data;
+    geocode(place.formatted_address).then(data => {
+        response.json({ message: 'Request received!', data })
+    })
+    .catch(err => console.log(err));
+
+    console.log(data);
     marker.setPlace({
       placeId: place.place_id,
       location: place.geometry.location,
@@ -48,10 +57,22 @@ function initMap() {
     infowindowContent.children.namedItem("place-name").textContent = place.name;
     infowindowContent.children.namedItem("place-id").textContent =
       place.place_id;
-    infowindowContent.children.namedItem("place-address").textContent =
-      place.formatted_address;
+    infowindowContent.children.namedItem("coordinates").textContent =
+//      coordinates.get('lat');
     infowindow.open(map, marker);
   });
+}
+
+async function geocode(location) {
+    let coordinates = new Map();
+    const response = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+        params: {
+            address: location,
+            key: API_KEY
+        }
+    });
+    console.log(response.data.results[0].geometry.location.lat);
+    return response;
 }
 
 window.initMap = initMap;
