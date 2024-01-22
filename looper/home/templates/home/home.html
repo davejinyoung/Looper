@@ -16,6 +16,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.1/axios.min.js"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'home/maps.css' %}">
     <script type="module" src="{% static 'home/maps.js' %}"></script>
+
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.0/mapbox-gl.css' rel='stylesheet' />
+
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
+
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light p-2">
@@ -48,22 +55,12 @@
       </div>
     </nav>
 
-    <div style="display: none">
-      <input
-        id="pac-input"
-        class="controls"
-        type="text"
-        placeholder="Enter your starting location"
-      />
-    </div>
-    <div id="map"></div>
-    <div id="infowindow-content">
-      <span id="place-name" class="title"></span><br />
-      <strong>Place ID:</strong> <span id="place-id"></span><br />
-      <strong>Coordinates</strong> <span id="coordinates"></span><br />
-    </div>
-
+    <div id="map" class="my-10"></div>
     <form class="mx-5">
+      <div class="mb-3">
+        <input type="checkbox" class="btn-check" id="btn-check" autocomplete="off">
+        <label class="btn btn-primary" for="btn-check">Use Current Location</label>
+      </div>
       <div class="mb-3">
         <label for="startingLocation" class="form-label">Starting Location</label>
         <input type="email" class="form-control" id="startingLocation">
@@ -79,18 +76,6 @@
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 
-
-
-    <!--
-      The `defer` attribute causes the callback to execute after the full HTML
-      document has been parsed. For non-blocking uses, avoiding race conditions,
-      and consistent behavior across browsers, consider loading using Promises.
-      See https://developers.google.com/maps/documentation/javascript/load-maps-js-api
-      for more information.
-      -->
-    <script
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDg9dcCA0yCEzRwXzBD1ug667iSE7PXXB0&callback=initMap&libraries=places&v=weekly"
-      defer
-    ></script>
+    <script type="module" src="{% static 'home/mapbox.js' %}"></script>
   </body>
 </html>
