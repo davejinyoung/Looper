@@ -26,8 +26,6 @@ const geolocateControl = new mapboxgl.GeolocateControl({
 map.addControl(geolocateControl);
 
 document.getElementById('btn-check').addEventListener('click', function(event) {
-    console.log("Test");
-    // const geolocateControl = map.getControl('geolocate');
     geolocateControl.trigger();
 });
 
