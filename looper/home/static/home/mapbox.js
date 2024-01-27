@@ -1,10 +1,10 @@
 mapboxgl.accessToken = 'pk.eyJ1IjoiZGF2ZWppbnlvdW5nIiwiYSI6ImNscm84czI4ajA3ZHYya2w5c29wZmhwdWsifQ.4EwYfetiww7nb40hQV_RNQ';
 
 const map = new mapboxgl.Map({
-  container: 'map', // container ID
-  style: 'mapbox://styles/mapbox/streets-v12', // style URL
-  center: [-123.12, 49.28], // starting position [lng, lat]
-  zoom: 10, // starting zoom
+    container: 'map', // container ID
+    style: 'mapbox://styles/mapbox/streets-v12', // style URL
+    center: [-123.12, 49.28], // starting position [lng, lat]
+    zoom: 10, // starting zoom
 });
 
 map.addControl(
@@ -15,17 +15,23 @@ map.addControl(
     'top-left'
 );
 
-map.addControl(
-    new mapboxgl.GeolocateControl({
-        positionOptions: {
-            enableHighAccuracy: true
-        },
-        // When active the map will receive updates to the device's location as it changes.
-        trackUserLocation: true,
-        // Draw an arrow next to the location dot to indicate which direction the device is heading.
-        showUserHeading: true
-    })
-);
+const geolocateControl = new mapboxgl.GeolocateControl({
+    positionOptions: {
+        enableHighAccuracy: true
+    },
+    trackUserLocation: true,
+    showUserHeading: true
+});
+
+map.addControl(geolocateControl);
+
+document.getElementById('btn-check').addEventListener('click', function(event) {
+    console.log("Test");
+    // const geolocateControl = map.getControl('geolocate');
+    geolocateControl.trigger();
+});
+
+
 
 let curMarker;
 map.on('click', evt => {
