@@ -15,7 +15,7 @@ const geocoder = new MapboxGeocoder({
     accessToken: mapboxgl.accessToken,
     mapboxgl: mapboxgl,
 });
-map.addControl(geocoder);
+map.addControl(geocoder, 'top-left');
 geocoder.on('result', (event) => {
     const coordinates = event.result.geometry.coordinates;
     addNewMarker(coordinates);
