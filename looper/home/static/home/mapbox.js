@@ -5,6 +5,7 @@ const map = new mapboxgl.Map({
     style: 'mapbox://styles/mapbox/streets-v12',
     center: [-123.12, 49.28],
     zoom: 10,
+    projection: 'mercator'
 });
 
 let curMarker;
@@ -34,12 +35,12 @@ map.addControl(geolocateControl);
 document.getElementById('btn-check').addEventListener('click', function(event) {
     geolocateControl.trigger();
 });
-
-// Script for location of clicked area on map
 geolocateControl.on('geolocate', (event) => {
     const coordinates = [event.coords.longitude, event.coords.latitude];
     addNewMarker(coordinates);
 });
+
+// Script for location of clicked area on map
 map.on('click', (event) => {
     const coordinates = [event.lngLat.lng, event.lngLat.lat];
     addNewMarker(coordinates);
