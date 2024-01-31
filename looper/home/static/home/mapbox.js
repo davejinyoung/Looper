@@ -74,7 +74,6 @@ function addNewMarker(coordinates) {
 
 document.body.addEventListener('click', function(event) {
     if (event.target.classList.contains('startingPoint')) {
-        console.log("success");
         document.getElementById('startingLocation').value = "";
         document.getElementById('startingLocation').value += `${placeName}`;
     }
