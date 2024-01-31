@@ -9,6 +9,7 @@ const map = new mapboxgl.Map({
 });
 
 let curMarker;
+let placeName;
 let geolocationActive = false;
 
 // Script for searching for location
@@ -58,10 +59,11 @@ function addNewMarker(coordinates) {
     request.onload = function() {
         if (this.status >= 200 && this.status < 400) {
             var data = JSON.parse(this.response);
-            let placeName = data.features[0].place_name
+            placeName = data.features[0].place_name
             const marker = new mapboxgl.Marker()
                 .setLngLat(coordinates)
-                .setPopup(new mapboxgl.Popup().setHTML(`<p>${placeName}</p>`))
+                .setPopup(new mapboxgl.Popup().setHTML(`<p>${placeName}</p>
+                    <button type="button" class="startingPoint">Set Starting Point</button>`))
                 .addTo(map);
             marker.togglePopup();
             curMarker = marker;
@@ -69,3 +71,11 @@ function addNewMarker(coordinates) {
     };
     request.send();
 }
+
+document.body.addEventListener('click', function(event) {
+    if (event.target.classList.contains('startingPoint')) {
+        console.log("success");
+        document.getElementById('startingLocation').value = "";
+        document.getElementById('startingLocation').value += `${placeName}`;
+    }
+});
