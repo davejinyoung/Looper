@@ -74,7 +74,10 @@ function addNewMarker(coordinates) {
 
 document.body.addEventListener('click', function(event) {
     if (event.target.classList.contains('startingPoint')) {
-        document.getElementById('startingLocation').value = "";
-        document.getElementById('startingLocation').value += `${placeName}`;
+        const allForms = document.querySelectorAll('form');
+        allForms.forEach(form => {
+            const startingLocationInputs = form.querySelectorAll('.startingLocation');
+            startingLocationInputs.forEach(input => input.value = `${placeName}`);
+        });
     }
 });
