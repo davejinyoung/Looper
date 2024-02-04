@@ -9,7 +9,7 @@ const map = new mapboxgl.Map({
 });
 
 let curMarker;
-let placeName;
+let startingLocation = new Map();
 let geolocationActive = false;
 
 // Script for searching for location
@@ -55,14 +55,15 @@ function addNewMarker(coordinates) {
         curMarker.remove();
     }
     var request = new XMLHttpRequest();
+    startingLocation.set("coordinates", coordinates);
     request.open('GET', `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?access_token=${mapboxgl.accessToken}`);
     request.onload = function() {
         if (this.status >= 200 && this.status < 400) {
             var data = JSON.parse(this.response);
-            placeName = data.features[0].place_name
+            startingLocation.set("placeName", data.features[0].place_name);
             const marker = new mapboxgl.Marker()
                 .setLngLat(coordinates)
-                .setPopup(new mapboxgl.Popup().setHTML(`<p>${placeName}</p>
+                .setPopup(new mapboxgl.Popup().setHTML(`<p>${startingLocation.get("placeName")}</p>
                     <button type="button" class="startingPoint">Set Starting Point</button>`))
                 .addTo(map);
             marker.togglePopup();
@@ -77,7 +78,58 @@ document.body.addEventListener('click', function(event) {
         const allForms = document.querySelectorAll('form');
         allForms.forEach(form => {
             const startingLocationInputs = form.querySelectorAll('.startingLocation');
-            startingLocationInputs.forEach(input => input.value = `${placeName}`);
+            startingLocationInputs.forEach(input => input.value = `${startingLocation.get("placeName")}`);
         });
     }
 });
+
+document.getElementById('randLoopButton').addEventListener('click', function(event) {
+    showForm('randLoopForm');
+});
+document.getElementById('randRouteButton').addEventListener('click', function(event) {
+    showForm('randRouteForm');
+});
+document.getElementById('customRouteButton').addEventListener('click', function(event) {
+    showForm('customRouteForm');
+});
+
+function showForm(formId) {
+    // Hide all forms
+    const allForms = document.querySelectorAll('form');
+    allForms.forEach(form => form.classList.add('d-none'));
+
+    // Show the selected form
+    const selectedForm = document.getElementById(formId);
+    if (selectedForm) {
+        selectedForm.classList.remove('d-none');
+    }
+}
+
+document.getElementById("submit-rand-loop").addEventListener('click', function(event) {
+    calculateOptimizedRoute(startingLocation.get('coordinates'))
+});
+
+function calculateOptimizedRoute(start) {
+    const queryURL = `https://api.mapbox.com/optimized-trips/v1/mapbox/walking/${start[0]},${start[1]};-123.310659,48.4647795?overview=full&steps=true&geometries=geojson&source=first&access_token=${mapboxgl.accessToken}`;
+
+    fetch(queryURL)
+      .then(response => response.json())
+      .then(data => {
+        const optimizedRoute = turf.featureCollection([turf.feature(data.trips[0].geometry)]);
+        map.addSource('route', { type: 'geojson', data: optimizedRoute });
+        map.addLayer({
+          id: 'optimized-route',
+          type: 'line',
+          source: 'route',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': '#3887be',
+            'line-width': 5
+          }
+        });
+      })
+      .catch(error => console.error('Error:', error));
+  }
