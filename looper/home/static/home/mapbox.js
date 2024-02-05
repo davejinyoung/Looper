@@ -8,8 +8,10 @@ const map = new mapboxgl.Map({
     projection: 'mercator'
 });
 
-let curMarker;
+let curStartMarker;
+let curEndMarker;
 let startingLocation = new Map();
+let endingLocation = new Map();
 let geolocationActive = false;
 
 // Script for searching for location
@@ -49,30 +51,57 @@ map.on('click', (event) => {
     addNewMarker(coordinates);
 });
 
-// Adds a new marker
+// Script to adds a new marker. Helper function below
 function addNewMarker(coordinates) {
-    if(curMarker != null){
-        curMarker.remove();
+    let randRouteFormList = Object.values(document.getElementById('randRouteForm').classList);
+    if (document.getElementById('startingLocation2').value != '' && randRouteFormList.indexOf('d-none') == -1){
+        setMarker(coordinates, false);
     }
+    else {
+        setMarker(coordinates);
+    }
+}
+
+function setMarker(coordinates, startMarker = true) {
     var request = new XMLHttpRequest();
-    startingLocation.set("coordinates", coordinates);
     request.open('GET', `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?access_token=${mapboxgl.accessToken}`);
     request.onload = function() {
         if (this.status >= 200 && this.status < 400) {
             var data = JSON.parse(this.response);
-            startingLocation.set("placeName", data.features[0].place_name);
-            const marker = new mapboxgl.Marker()
-                .setLngLat(coordinates)
-                .setPopup(new mapboxgl.Popup().setHTML(`<p>${startingLocation.get("placeName")}</p>
-                    <button type="button" class="startingPoint">Set Starting Point</button>`))
-                .addTo(map);
-            marker.togglePopup();
-            curMarker = marker;
+            if(startMarker) {
+                startingLocation.set("coordinates", coordinates);
+                startingLocation.set("placeName", data.features[0].place_name);
+                if(curStartMarker != null){
+                    curStartMarker.remove();
+                }
+                const marker = new mapboxgl.Marker()
+                    .setLngLat(coordinates)
+                    .setPopup(new mapboxgl.Popup().setHTML(`<p>${startingLocation.get("placeName")}</p>
+                        <button type="button" class="startingPoint">Set Starting Point</button>`))
+                    .addTo(map);
+                marker.togglePopup();
+                curStartMarker = marker;
+            }
+            else {
+                endingLocation.set("coordinates", coordinates);
+                endingLocation.set("placeName", data.features[0].place_name);
+                if(curEndMarker != null){
+                    curEndMarker.remove();
+                }
+                const marker = new mapboxgl.Marker()
+                    .setLngLat(coordinates)
+                    .setPopup(new mapboxgl.Popup().setHTML(`<p>${endingLocation.get("placeName")}</p>
+                        <button type="button" class="endingPoint">Set Ending Point</button>`))
+                    .addTo(map);
+                marker.togglePopup();
+                curEndMarker = marker;
+            }
         }
     };
     request.send();
 }
 
+// Script to add an ending location
 document.body.addEventListener('click', function(event) {
     if (event.target.classList.contains('startingPoint')) {
         const allForms = document.querySelectorAll('form');
@@ -80,9 +109,16 @@ document.body.addEventListener('click', function(event) {
             const startingLocationInputs = form.querySelectorAll('.startingLocation');
             startingLocationInputs.forEach(input => input.value = `${startingLocation.get("placeName")}`);
         });
+        curStartMarker.togglePopup();
+    }
+    else if (event.target.classList.contains('endingPoint')) {
+        const randRouteForm = document.getElementById('randRouteForm');
+        randRouteForm.endingLocation.value = `${endingLocation.get("placeName")}`
+        curEndMarker.togglePopup();
     }
 });
 
+// Script for selecting the type of route you want to create
 document.getElementById('randLoopButton').addEventListener('click', function(event) {
     showForm('randLoopForm');
 });
@@ -106,30 +142,42 @@ function showForm(formId) {
 }
 
 document.getElementById("submit-rand-loop").addEventListener('click', function(event) {
-    calculateOptimizedRoute(startingLocation.get('coordinates'))
+    calculateOptimizedRoute(startingLocation.get('coordinates'));
 });
 
-function calculateOptimizedRoute(start) {
-    const queryURL = `https://api.mapbox.com/optimized-trips/v1/mapbox/walking/${start[0]},${start[1]};-123.310659,48.4647795?overview=full&steps=true&geometries=geojson&source=first&access_token=${mapboxgl.accessToken}`;
+document.getElementById("submit-rand-route").addEventListener('click', function(event) {
+
+    calculateOptimizedRoute(startingLocation.get('coordinates'), endingLocation.get('coordinates'))
+});
+
+function calculateOptimizedRoute(start, end = []) {
+    let endCoordinates = [-123.310659, 48.4647795]
+    if (end.length == 0){
+        end = endCoordinates;
+        console.log(endCoordinates);
+    }
+    const queryURL = `https://api.mapbox.com/optimized-trips/v1/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?&overview=full&annotations=duration,distance&steps=true&geometries=geojson&source=first&destination=last&roundtrip=false&access_token=${mapboxgl.accessToken}`;
 
     fetch(queryURL)
-      .then(response => response.json())
-      .then(data => {
-        const optimizedRoute = turf.featureCollection([turf.feature(data.trips[0].geometry)]);
-        map.addSource('route', { type: 'geojson', data: optimizedRoute });
-        map.addLayer({
-          id: 'optimized-route',
-          type: 'line',
-          source: 'route',
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-          },
-          paint: {
-            'line-color': '#3887be',
-            'line-width': 5
-          }
-        });
-      })
-      .catch(error => console.error('Error:', error));
-  }
+        .then(response => response.json())
+        .then(data => {
+            const optimizedRoute = turf.featureCollection([turf.feature(data.trips[0].geometry)]);
+            const optimizedRouteDistance = turf.featureCollection([turf.feature(data.trips[0].distance)]);
+            console.log(data.trips[0].legs[0].distance);
+            map.addSource('route', { type: 'geojson', data: optimizedRoute });
+            map.addLayer({
+                id: 'optimized-route',
+                type: 'line',
+                source: 'route',
+                layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+                },
+                paint: {
+                'line-color': '#3887be',
+                'line-width': 5
+                }
+            });
+        })
+        .catch(error => console.error('Error:', error));
+}
