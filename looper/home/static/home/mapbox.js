@@ -54,6 +54,12 @@ map.on('click', (event) => {
 // Script to adds a new marker. Helper function below
 function addNewMarker(coordinates) {
     let randRouteFormList = Object.values(document.getElementById('randRouteForm').classList);
+    const startingLocationFields =  document.querySelectorAll('.startingLocation');
+//    startingLocationFields.forEach(field => {
+//
+//    })
+    // clean up heavily
+    console.log(startingLocationFields);
     if (document.getElementById('startingLocation2').value != '' && randRouteFormList.indexOf('d-none') == -1){
         setMarker(coordinates, false);
     }
@@ -73,6 +79,7 @@ function setMarker(coordinates, startMarker = true) {
                 startingLocation.set("placeName", data.features[0].place_name);
                 if(curStartMarker != null){
                     curStartMarker.remove();
+                    curStartMarker = null;
                 }
                 const marker = new mapboxgl.Marker()
                     .setLngLat(coordinates)
@@ -87,6 +94,7 @@ function setMarker(coordinates, startMarker = true) {
                 endingLocation.set("placeName", data.features[0].place_name);
                 if(curEndMarker != null){
                     curEndMarker.remove();
+                    curEndMarker = null;
                 }
                 const marker = new mapboxgl.Marker()
                     .setLngLat(coordinates)
@@ -162,8 +170,8 @@ function calculateOptimizedRoute(start, end = []) {
         .then(response => response.json())
         .then(data => {
             const optimizedRoute = turf.featureCollection([turf.feature(data.trips[0].geometry)]);
-            const optimizedRouteDistance = turf.featureCollection([turf.feature(data.trips[0].distance)]);
-            console.log(data.trips[0].legs[0].distance);
+            const optimizedRouteDistance = data.trips[0].legs[0].distance / 1000;
+            console.log(optimizedRouteDistance.toFixed(2));
             map.addSource('route', { type: 'geojson', data: optimizedRoute });
             map.addLayer({
                 id: 'optimized-route',
@@ -180,4 +188,41 @@ function calculateOptimizedRoute(start, end = []) {
             });
         })
         .catch(error => console.error('Error:', error));
+}
+
+const clearButtons = document.querySelectorAll(".clear-btn")
+
+clearButtons.forEach(button => {
+    button.addEventListener('click', function(event){
+        clearForm();
+    });
+});
+
+function clearForm(){
+    if(curStartMarker){
+        curStartMarker.remove();
+        curStartMarker = null;
+    }
+    startingLocation.set('coordinates', null);
+    startingLocation.set('placeName', null);
+
+    if(curEndMarker){
+        curEndMarker.remove();
+        curEndMarker = null;
+    }
+    endingLocation.set('coordinates', null);
+    endingLocation.set('placeName', null);
+
+    const startingLocationFields = document.querySelectorAll('.startingLocation');
+    startingLocationFields.forEach(field => {
+       field.value = '';
+    });
+
+    const endingLocationFields = document.querySelectorAll('.endingLocation');
+    endingLocationFields.forEach(field => {
+       field.value = '';
+    });
+
+    map.removeLayer('optimized-route');
+    map.removeSource('route');
 }
