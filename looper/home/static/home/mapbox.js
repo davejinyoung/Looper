@@ -19,7 +19,7 @@ const geocoder = new MapboxGeocoder({
     accessToken: mapboxgl.accessToken,
     mapboxgl: mapboxgl,
     reverseGeocode: true,
-    placeholder: "Enter Starting Address Here"
+    placeholder: "Enter Address"
 });
 map.addControl(geocoder, 'top-left');
 geocoder.on('result', (event) => {
@@ -37,9 +37,14 @@ const geolocateControl = new mapboxgl.GeolocateControl({
     showUserHeading: true
 });
 map.addControl(geolocateControl);
-document.getElementById('btn-check').addEventListener('click', function(event) {
-    geolocateControl.trigger();
+
+let curLocationButtons = document.querySelectorAll('.cur-location-btn');
+curLocationButtons.forEach(button => {
+    button.addEventListener('click', function(event){
+        geolocateControl.trigger();
+    });
 });
+
 geolocateControl.on('geolocate', (event) => {
     const coordinates = [event.coords.longitude, event.coords.latitude];
     addNewMarker(coordinates);

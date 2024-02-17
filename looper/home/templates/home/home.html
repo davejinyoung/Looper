@@ -65,8 +65,7 @@
 
     <form id="randLoopForm" class="mx-5 py-3 d-none">
       <div class="mb-3">
-        <input type="button" class="btn-check" id="btn-check" autocomplete="off">
-        <label class="btn btn-primary" for="btn-check">Use Current Location</label>
+        <button type="button" class="btn btn-primary cur-location-btn">Use Current Location</button>
       </div>
       <div class="mb-3">
         <label for="startingLocation1" class="form-label">Starting Location</label>
@@ -78,14 +77,13 @@
       </div>
       <div class="mb-3">
         <button class="btn btn-primary" id="submit-rand-loop" type="button">Generate Route</button>
-        <button class="btn btn-warning clear-btn" type="button">Clear</button>
+        <button class="btn btn-warning clear-btn" type="button">Reset</button>
       </div>
     </form>
 
     <form id="randRouteForm" class="mx-5 py-3 d-none">
       <div class="mb-3">
-        <input type="button" class="btn-check" id="btn-check" autocomplete="off">
-        <label class="btn btn-primary" for="btn-check">Use Current Location</label>
+        <button type="button" class="btn btn-primary cur-location-btn">Use Current Location</button>
       </div>
       <div class="mb-3">
         <label for="startingLocation2" class="form-label">Starting Location</label>
@@ -97,15 +95,14 @@
       </div>
       <div class="mb-3">
         <button class="btn btn-primary" id="submit-rand-route" type="button">Generate Route</button>
-        <button class="btn btn-warning clear-btn" type="button">Clear</button>
+        <button class="btn btn-warning clear-btn" type="button">Reset</button>
       </div>
 
     </form>
 
     <form id="customRouteForm" class="mx-5 py-3 d-none">
       <div class="mb-3">
-        <input type="button" class="btn-check" id="btn-check" autocomplete="off">
-        <label class="btn btn-primary" for="btn-check">Use Current Location</label>
+        <button type="button" class="btn btn-primary cur-location-btn">Use Current Location</button>
       </div>
       <div class="mb-3">
         <label for="startingLocation3" class="form-label">Starting Location</label>
@@ -117,7 +114,7 @@
       </div>
       <div class="mb-3">
         <button class="btn btn-primary" id="submit-cust-route" type="button">Generate Route</button>
-        <button class="btn btn-warning clear-btn" type="button">Clear</button>
+        <button class="btn btn-warning clear-btn" type="button">Reset</button>
       </div>
     </form>
     <script type="module" src="{% static 'home/mapbox.js' %}"></script>
