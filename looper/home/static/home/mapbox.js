@@ -159,17 +159,12 @@ document.getElementById("submit-rand-loop").addEventListener('click', function(e
 });
 
 document.getElementById("submit-rand-route").addEventListener('click', function(event) {
-
     calculateOptimizedRoute(startingLocation.get('coordinates'), endingLocation.get('coordinates'))
 });
 
-function calculateOptimizedRoute(start, end = []) {
-    let endCoordinates = [-123.310659, 48.4647795]
-    if (end.length == 0){
-        end = endCoordinates;
-        console.log(endCoordinates);
-    }
-    const queryURL = `https://api.mapbox.com/optimized-trips/v1/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?&overview=full&annotations=duration,distance&steps=true&geometries=geojson&source=first&destination=last&roundtrip=false&access_token=${mapboxgl.accessToken}`;
+function calculateOptimizedRoute(start, end) {
+    var exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
+    const queryURL = `https://api.mapbox.com/optimized-trips/v1/mapbox/${exerciseType}/${start[0]},${start[1]};${end[0]},${end[1]}?&overview=full&annotations=duration,distance&steps=true&geometries=geojson&source=first&destination=last&roundtrip=false&access_token=${mapboxgl.accessToken}`;
 
     fetch(queryURL)
         .then(response => response.json())
@@ -190,6 +185,12 @@ function calculateOptimizedRoute(start, end = []) {
                 'line-color': '#3887be',
                 'line-width': 5
                 }
+            });
+            map.flyTo({
+                center: [end[0], end[1]],
+                zoom: 14,
+                duration: 3000,
+                essential: true
             });
         })
         .catch(error => console.error('Error:', error));
