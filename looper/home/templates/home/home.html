@@ -63,7 +63,7 @@
       <button id="customRouteButton" type="button" class="btn btn-primary">Customize Your Own Route</button>
     </div>
 
-    <div class="mt-4 mx-5">
+    <div id="universalFormItems" class="mt-4 mx-5 d-none">
       <div class="form-check">
         <input class="form-check-input" type="radio" name="flexRadioDefault" id="runCheck" checked>
         <label class="form-check-label" for="runCheck">Run / Walk</label>
@@ -72,12 +72,12 @@
         <input class="form-check-input" type="radio" name="flexRadioDefault" id="bikeCheck">
         <label class="form-check-label" for="bikeCheck">Bike</label>
       </div>
+      <div class="mt-3">
+        <button type="button" class="btn btn-primary cur-location-btn">Use Current Location</button>
+      </div>
     </div>
 
     <form id="randLoopForm" class="mx-5 py-3 d-none">
-      <div class="mb-3">
-        <button type="button" class="btn btn-primary cur-location-btn">Use Current Location</button>
-      </div>
       <div class="mb-3">
         <label for="startingLocation1" class="form-label">Starting Location</label>
         <input type="text" class="form-control startingLocation" id="startingLocation1" placeholder="Set Your Starting Point on the Map" readonly>
@@ -94,9 +94,6 @@
 
     <form id="randRouteForm" class="mx-5 py-3 d-none">
       <div class="mb-3">
-        <button type="button" class="btn btn-primary cur-location-btn">Use Current Location</button>
-      </div>
-      <div class="mb-3">
         <label for="startingLocation2" class="form-label">Starting Location</label>
         <input type="text" class="form-control startingLocation" id="startingLocation2" placeholder="Set Your Starting Point on the Map" readonly>
       </div>
@@ -111,9 +108,6 @@
     </form>
 
     <form id="customRouteForm" class="mx-5 py-3 d-none">
-      <div class="mb-3">
-        <button type="button" class="btn btn-primary cur-location-btn">Use Current Location</button>
-      </div>
       <div class="mb-3">
         <label for="startingLocation3" class="form-label">Starting Location</label>
         <input type="text" class="form-control startingLocation" id="startingLocation3" placeholder="Set Your Starting Point on the Map" readonly>

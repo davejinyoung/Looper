@@ -60,11 +60,6 @@ map.on('click', (event) => {
 function addNewMarker(coordinates) {
     let randRouteFormList = Object.values(document.getElementById('randRouteForm').classList);
     const startingLocationFields =  document.querySelectorAll('.startingLocation');
-//    startingLocationFields.forEach(field => {
-//
-//    })
-    // clean up heavily
-    console.log(startingLocationFields);
     if (document.getElementById('startingLocation2').value != '' && randRouteFormList.indexOf('d-none') == -1){
         setMarker(coordinates, false);
     }
@@ -152,6 +147,7 @@ function showForm(formId) {
     if (selectedForm) {
         selectedForm.classList.remove('d-none');
     }
+    document.getElementById("universalFormItems").classList.remove('d-none');
 }
 
 document.getElementById("submit-rand-loop").addEventListener('click', function(event) {
