@@ -1,18 +1,18 @@
+import { Route } from "./routing.js";
+
 mapboxgl.accessToken = 'pk.eyJ1IjoiZGF2ZWppbnlvdW5nIiwiYSI6ImNscm84czI4ajA3ZHYya2w5c29wZmhwdWsifQ.4EwYfetiww7nb40hQV_RNQ';
 
-const map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v12',
-    center: [-123.12, 49.28],
-    zoom: 10,
-    projection: 'mercator'
-});
+let testing = new Route();
 
-let curStartMarker;
-let curEndMarker;
-let startingLocation = new Map();
-let endingLocation = new Map();
-let geolocationActive = false;
+const map = testing.map;
+
+var curStartMarker = testing.curStartMarker;
+var curEndMarker = testing.curEndMarker;
+var curAdditionalMarker = testing.curAdditionalMarker;
+
+var startingLocation = testing.startingLocation;
+var endingLocation = testing.endingLocation;
+var additionalLocation = testing.additionalLocation;
 
 // Script for searching for location
 const geocoder = new MapboxGeocoder({
@@ -58,23 +58,29 @@ map.on('click', (event) => {
 
 // Script to adds a new marker. Helper function below
 function addNewMarker(coordinates) {
+    let randLoopFormList = Object.values(document.getElementById('randLoopForm').classList);
     let randRouteFormList = Object.values(document.getElementById('randRouteForm').classList);
+    let customRouteFormList = Object.values(document.getElementById('customRouteForm').classList);
     const startingLocationFields =  document.querySelectorAll('.startingLocation');
+
     if (document.getElementById('startingLocation2').value != '' && randRouteFormList.indexOf('d-none') == -1){
-        setMarker(coordinates, false);
+        setMarker(coordinates, "end");
+    }
+    else if (document.getElementById('startingLocation3').value != '' && customRouteFormList.indexOf('d-none')){
+        setMarker(coordinates, "add");
     }
     else {
-        setMarker(coordinates);
+        setMarker(coordinates, "start");
     }
 }
 
-function setMarker(coordinates, startMarker = true) {
+function setMarker(coordinates, action) {
     var request = new XMLHttpRequest();
     request.open('GET', `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?access_token=${mapboxgl.accessToken}`);
     request.onload = function() {
         if (this.status >= 200 && this.status < 400) {
             var data = JSON.parse(this.response);
-            if(startMarker) {
+            if (action == "start") {
                 startingLocation.set("coordinates", coordinates);
                 startingLocation.set("placeName", data.features[0].place_name);
                 if(curStartMarker != null){
@@ -89,7 +95,7 @@ function setMarker(coordinates, startMarker = true) {
                 marker.togglePopup();
                 curStartMarker = marker;
             }
-            else {
+            else if (action == "end"){
                 endingLocation.set("coordinates", coordinates);
                 endingLocation.set("placeName", data.features[0].place_name);
                 if(curEndMarker != null){
@@ -104,10 +110,27 @@ function setMarker(coordinates, startMarker = true) {
                 marker.togglePopup();
                 curEndMarker = marker;
             }
+            else if (action == "add") {
+                additionalLocation.set("coordinates", coordinates);
+                additionalLocation.set("placeName", data.features[0].place_name);
+                if(curAdditionalMarker != null){
+                    curAdditionalMarker.remove();
+                    curAdditionalMarker = null;
+                }
+                const marker = new mapboxgl.Marker()
+                    .setLngLat(coordinates)
+                    .setPopup(new mapboxgl.Popup().setHTML(`<p>${additionalLocation.get("placeName")}</p>
+                        <button type="button" class="additionalPoint">Add Additional Point</button>`))
+                    .addTo(map);
+                marker.togglePopup();
+                curAdditionalMarker = marker;
+            }
         }
     };
     request.send();
 }
+
+let waypointsTest = [];
 
 // Script to add an ending location
 document.body.addEventListener('click', function(event) {
@@ -118,11 +141,17 @@ document.body.addEventListener('click', function(event) {
             startingLocationInputs.forEach(input => input.value = `${startingLocation.get("placeName")}`);
         });
         curStartMarker.togglePopup();
+        waypointsTest.push(startingLocation.get("coordinates"));
     }
     else if (event.target.classList.contains('endingPoint')) {
         const randRouteForm = document.getElementById('randRouteForm');
         randRouteForm.endingLocation.value = `${endingLocation.get("placeName")}`
         curEndMarker.togglePopup();
+    }
+    else if (event.target.classList.contains('additionalPoint')) {
+        const randRouteForm = document.getElementById('randRouteForm');
+        waypointsTest.push(additionalLocation.get("coordinates"));
+        curAdditionalMarker.togglePopup();
     }
 });
 
@@ -162,7 +191,8 @@ document.getElementById("submit-rand-route").addEventListener('click', function(
 });
 
 document.getElementById("submit-cust-route").addEventListener('click', function(event) {
-    calculateOptimizedRoute([startingLocation.get('coordinates'), endingLocation.get('coordinates')])
+    console.log(waypointsTest);
+    calculateOptimizedRoute(waypointsTest);
 });
 
 
@@ -247,6 +277,14 @@ function clearForm(){
     }
     endingLocation.set('coordinates', null);
     endingLocation.set('placeName', null);
+
+    if(curAdditionalMarker){
+        curAdditionalMarker.remove();
+        curAdditionalMarker = null;
+    }
+    additionalLocation.set('coordinates', null);
+    additionalLocation.set('placeName', null);
+    waypointsTest = [];
 
     const startingLocationFields = document.querySelectorAll('.startingLocation');
     startingLocationFields.forEach(field => {
