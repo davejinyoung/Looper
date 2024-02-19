@@ -128,12 +128,15 @@ document.body.addEventListener('click', function(event) {
 
 // Script for selecting the type of route you want to create
 document.getElementById('randLoopButton').addEventListener('click', function(event) {
+    clearForm();
     showForm('randLoopForm');
 });
 document.getElementById('randRouteButton').addEventListener('click', function(event) {
+    clearForm();
     showForm('randRouteForm');
 });
 document.getElementById('customRouteButton').addEventListener('click', function(event) {
+    clearForm();
     showForm('customRouteForm');
 });
 
@@ -151,16 +154,28 @@ function showForm(formId) {
 }
 
 document.getElementById("submit-rand-loop").addEventListener('click', function(event) {
-    calculateOptimizedRoute(startingLocation.get('coordinates'));
+    calculateOptimizedRoute([startingLocation.get('coordinates')]);
 });
 
 document.getElementById("submit-rand-route").addEventListener('click', function(event) {
-    calculateOptimizedRoute(startingLocation.get('coordinates'), endingLocation.get('coordinates'))
+    calculateOptimizedRoute([startingLocation.get('coordinates'), endingLocation.get('coordinates')])
 });
 
-function calculateOptimizedRoute(start, end) {
-    var exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
-    const queryURL = `https://api.mapbox.com/optimized-trips/v1/mapbox/${exerciseType}/${start[0]},${start[1]};${end[0]},${end[1]}?&overview=full&annotations=duration,distance&steps=true&geometries=geojson&source=first&destination=last&roundtrip=false&access_token=${mapboxgl.accessToken}`;
+document.getElementById("submit-cust-route").addEventListener('click', function(event) {
+    calculateOptimizedRoute([startingLocation.get('coordinates'), endingLocation.get('coordinates')])
+});
+
+
+function calculateOptimizedRoute(waypoints) {
+    const exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
+    let startAndEnd = getStartAndEnd(waypoints);
+    const waypointLiteral = getWaypointLiteral(waypoints);
+    const queryURL = `https://api.mapbox.com/optimized-trips/v1/mapbox/${exerciseType}/${waypointLiteral}?&overview=full&annotations=duration,distance&steps=true&geometries=geojson&source=first&destination=last&roundtrip=false&access_token=${mapboxgl.accessToken}`;
+
+    if(map.getSource('route') != null && map.getLayer('optimized-route') != null){
+        map.removeLayer('optimized-route')
+        map.removeSource('route');
+    }
 
     fetch(queryURL)
         .then(response => response.json())
@@ -183,13 +198,31 @@ function calculateOptimizedRoute(start, end) {
                 }
             });
             map.flyTo({
-                center: [end[0], end[1]],
+                center: [startAndEnd.get('end')[0], startAndEnd.get('end')[1]],
                 zoom: 14,
                 duration: 3000,
                 essential: true
             });
         })
         .catch(error => console.error('Error:', error));
+}
+
+function getWaypointLiteral(waypoints){
+    let waypointLiteral = ``;
+    waypoints.forEach(coordinate => {
+        waypointLiteral = waypointLiteral.concat(coordinate[0], ",", coordinate[1], ";");
+    });
+    waypointLiteral = waypointLiteral.substring(0, waypointLiteral.length - 1);
+    return waypointLiteral;
+}
+
+function getStartAndEnd(waypoints){
+    let start = waypoints[0];
+    let end = waypoints[waypoints.length - 1];
+    return new Map([
+        ['start', start],
+        ['end', end]
+    ]);
 }
 
 const clearButtons = document.querySelectorAll(".clear-btn")
@@ -225,6 +258,8 @@ function clearForm(){
        field.value = '';
     });
 
-    map.removeLayer('optimized-route');
-    map.removeSource('route');
+    if(map.getSource('route') != null && map.getLayer('optimized-route') != null){
+        map.removeLayer('optimized-route')
+        map.removeSource('route');
+    }
 }
