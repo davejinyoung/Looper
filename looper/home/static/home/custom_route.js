@@ -5,7 +5,10 @@ export class CustomRoute{
         this.startingLocation = new Map();
         this.additionalLocation = new Map();
         this.form = document.getElementById('customRouteForm');
-        this.waypoints = [];
+        this.waypoints = {
+            "coordinates": [],
+            "markers": []
+        };
     }
 
     get isCurrentForm(){
@@ -55,7 +58,7 @@ export class CustomRoute{
         }
     }
 
-    populateLocationForm(event){
+    populateLocationForm(event, map){
         if (event.target.classList.contains('startingPoint')) {
             const allForms = document.querySelectorAll('form');
             allForms.forEach(form => {
@@ -63,17 +66,22 @@ export class CustomRoute{
                 startingLocationInputs.forEach(input => input.value = `${this.startingLocation.get("placeName")}`);
             });
             this.curStartMarker.togglePopup();
-            this.waypoints.push(this.startingLocation.get("coordinates"));
+            this.waypoints["coordinates"].push(this.startingLocation.get("coordinates"));
         }
         else if (event.target.classList.contains('additionalPoint')) {
-            this.waypoints.push(this.additionalLocation.get("coordinates"));
-            this.curAdditionalMarker.togglePopup();
+            this.curAdditionalMarker.remove();
+            this.curAdditionalMarker = null;
+            const marker = new mapboxgl.Marker()
+                .setLngLat(this.additionalLocation.get("coordinates"))
+                .addTo(map);
+            this.waypoints["markers"].push(marker);
+            this.waypoints["coordinates"].push(this.additionalLocation.get("coordinates"));
         }
     }
 
     getStartAndEnd(){
-        let start = this.waypoints[0];
-        let end = this.waypoints[this.waypoints.length - 1];
+        let start = this.waypoints["coordinates"][0];
+        let end = this.waypoints["coordinates"][this.waypoints["coordinates"].length - 1];
         return new Map([
             ['start', start],
             ['end', end]
@@ -81,7 +89,7 @@ export class CustomRoute{
     }
 
     getAllWaypoints(){
-        return this.waypoints;
+        return this.waypoints["coordinates"];
     }
 
     clearForm(){
@@ -93,12 +101,13 @@ export class CustomRoute{
         this.startingLocation.set('coordinates', null);
         this.startingLocation.set('placeName', null);
 
-        if(this.curAdditionalMarker){
-            this.curAdditionalMarker.remove();
-            this.curAdditionalMarker = null;
-        }
+        this.waypoints["markers"].forEach(marker => {
+            marker.remove();
+        });
+        this.waypoints["markers"] = [];
+
         this.additionalLocation.set('coordinates', null);
         this.additionalLocation.set('placeName', null);
-        this.waypoints = [];
+        this.waypoints["coordinates"] = [];
     }
 }

@@ -76,7 +76,7 @@ curLocationButtons.forEach(button => {
 
 geolocateControl.on('geolocate', (event) => {
     const coordinates = [event.coords.longitude, event.coords.latitude];
-    addNewMarker(coordinates);
+    setMarker(coordinates);
 });
 
 // Script for location of clicked area on map
@@ -101,7 +101,7 @@ function setMarker(coordinates) {
 
 // Script to add an ending location
 document.body.addEventListener('click', function(event) {
-    routeType.populateLocationForm(event);
+    routeType.populateLocationForm(event, map);
 });
 
 
