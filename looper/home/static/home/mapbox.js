@@ -1,18 +1,48 @@
 import { Route } from "./routing.js";
+import { RandomLoop } from "./random_loop.js";
+import { RandomRoute } from "./random_route.js";
+import { CustomRoute} from "./custom_route.js";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiZGF2ZWppbnlvdW5nIiwiYSI6ImNscm84czI4ajA3ZHYya2w5c29wZmhwdWsifQ.4EwYfetiww7nb40hQV_RNQ';
 
-let testing = new Route();
+const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v12',
+    center: [-123.12, 49.28],
+    zoom: 10,
+    projection: 'mercator'
+});
 
-const map = testing.map;
+let routeType;
 
-var curStartMarker = testing.curStartMarker;
-var curEndMarker = testing.curEndMarker;
-var curAdditionalMarker = testing.curAdditionalMarker;
+// Script for selecting the type of route you want to create
+document.getElementById('randLoopButton').addEventListener('click', function(event) {
+    clearForm();
+    routeType = new RandomLoop();
+    showForm(routeType.form);
+});
+document.getElementById('randRouteButton').addEventListener('click', function(event) {
+    clearForm();
+    routeType = new RandomRoute();
+    showForm(routeType.form);
+});
+document.getElementById('customRouteButton').addEventListener('click', function(event) {
+    clearForm();
+    routeType = new CustomRoute();
+    showForm(routeType.form);
+});
 
-var startingLocation = testing.startingLocation;
-var endingLocation = testing.endingLocation;
-var additionalLocation = testing.additionalLocation;
+function showForm(selectedForm) {
+    // Hide all forms
+    const allForms = document.querySelectorAll('form');
+    allForms.forEach(form => form.classList.add('d-none'));
+
+    // Show the selected form
+    if(selectedForm){
+        selectedForm.classList.remove('d-none');
+    }
+    document.getElementById("universalFormItems").classList.remove('d-none');
+}
 
 // Script for searching for location
 const geocoder = new MapboxGeocoder({
@@ -53,153 +83,44 @@ geolocateControl.on('geolocate', (event) => {
 // Script for location of clicked area on map
 map.on('click', (event) => {
     const coordinates = [event.lngLat.lng, event.lngLat.lat];
-    addNewMarker(coordinates);
+    if (routeType != null){
+        setMarker(coordinates);
+    }
 });
 
-// Script to adds a new marker. Helper function below
-function addNewMarker(coordinates) {
-    let randLoopFormList = Object.values(document.getElementById('randLoopForm').classList);
-    let randRouteFormList = Object.values(document.getElementById('randRouteForm').classList);
-    let customRouteFormList = Object.values(document.getElementById('customRouteForm').classList);
-    const startingLocationFields =  document.querySelectorAll('.startingLocation');
-
-    if (document.getElementById('startingLocation2').value != '' && randRouteFormList.indexOf('d-none') == -1){
-        setMarker(coordinates, "end");
-    }
-    else if (document.getElementById('startingLocation3').value != '' && customRouteFormList.indexOf('d-none')){
-        setMarker(coordinates, "add");
-    }
-    else {
-        setMarker(coordinates, "start");
-    }
-}
-
-function setMarker(coordinates, action) {
+function setMarker(coordinates) {
     var request = new XMLHttpRequest();
     request.open('GET', `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?access_token=${mapboxgl.accessToken}`);
     request.onload = function() {
         if (this.status >= 200 && this.status < 400) {
             var data = JSON.parse(this.response);
-            if (action == "start") {
-                startingLocation.set("coordinates", coordinates);
-                startingLocation.set("placeName", data.features[0].place_name);
-                if(curStartMarker != null){
-                    curStartMarker.remove();
-                    curStartMarker = null;
-                }
-                const marker = new mapboxgl.Marker()
-                    .setLngLat(coordinates)
-                    .setPopup(new mapboxgl.Popup().setHTML(`<p>${startingLocation.get("placeName")}</p>
-                        <button type="button" class="startingPoint">Set Starting Point</button>`))
-                    .addTo(map);
-                marker.togglePopup();
-                curStartMarker = marker;
-            }
-            else if (action == "end"){
-                endingLocation.set("coordinates", coordinates);
-                endingLocation.set("placeName", data.features[0].place_name);
-                if(curEndMarker != null){
-                    curEndMarker.remove();
-                    curEndMarker = null;
-                }
-                const marker = new mapboxgl.Marker()
-                    .setLngLat(coordinates)
-                    .setPopup(new mapboxgl.Popup().setHTML(`<p>${endingLocation.get("placeName")}</p>
-                        <button type="button" class="endingPoint">Set Ending Point</button>`))
-                    .addTo(map);
-                marker.togglePopup();
-                curEndMarker = marker;
-            }
-            else if (action == "add") {
-                additionalLocation.set("coordinates", coordinates);
-                additionalLocation.set("placeName", data.features[0].place_name);
-                if(curAdditionalMarker != null){
-                    curAdditionalMarker.remove();
-                    curAdditionalMarker = null;
-                }
-                const marker = new mapboxgl.Marker()
-                    .setLngLat(coordinates)
-                    .setPopup(new mapboxgl.Popup().setHTML(`<p>${additionalLocation.get("placeName")}</p>
-                        <button type="button" class="additionalPoint">Add Additional Point</button>`))
-                    .addTo(map);
-                marker.togglePopup();
-                curAdditionalMarker = marker;
-            }
+            routeType.setMarkerWithCorrectType(coordinates, data, map);
         }
     };
     request.send();
 }
 
-let waypointsTest = [];
-
 // Script to add an ending location
 document.body.addEventListener('click', function(event) {
-    if (event.target.classList.contains('startingPoint')) {
-        const allForms = document.querySelectorAll('form');
-        allForms.forEach(form => {
-            const startingLocationInputs = form.querySelectorAll('.startingLocation');
-            startingLocationInputs.forEach(input => input.value = `${startingLocation.get("placeName")}`);
-        });
-        curStartMarker.togglePopup();
-        waypointsTest.push(startingLocation.get("coordinates"));
-    }
-    else if (event.target.classList.contains('endingPoint')) {
-        const randRouteForm = document.getElementById('randRouteForm');
-        randRouteForm.endingLocation.value = `${endingLocation.get("placeName")}`
-        curEndMarker.togglePopup();
-    }
-    else if (event.target.classList.contains('additionalPoint')) {
-        const randRouteForm = document.getElementById('randRouteForm');
-        waypointsTest.push(additionalLocation.get("coordinates"));
-        curAdditionalMarker.togglePopup();
-    }
+    routeType.populateLocationForm(event);
 });
 
-// Script for selecting the type of route you want to create
-document.getElementById('randLoopButton').addEventListener('click', function(event) {
-    clearForm();
-    showForm('randLoopForm');
-});
-document.getElementById('randRouteButton').addEventListener('click', function(event) {
-    clearForm();
-    showForm('randRouteForm');
-});
-document.getElementById('customRouteButton').addEventListener('click', function(event) {
-    clearForm();
-    showForm('customRouteForm');
-});
-
-function showForm(formId) {
-    // Hide all forms
-    const allForms = document.querySelectorAll('form');
-    allForms.forEach(form => form.classList.add('d-none'));
-
-    // Show the selected form
-    const selectedForm = document.getElementById(formId);
-    if (selectedForm) {
-        selectedForm.classList.remove('d-none');
-    }
-    document.getElementById("universalFormItems").classList.remove('d-none');
-}
 
 document.getElementById("submit-rand-loop").addEventListener('click', function(event) {
-    calculateOptimizedRoute([startingLocation.get('coordinates')]);
+    calculateOptimizedRoute();
 });
-
 document.getElementById("submit-rand-route").addEventListener('click', function(event) {
-    calculateOptimizedRoute([startingLocation.get('coordinates'), endingLocation.get('coordinates')])
+    calculateOptimizedRoute()
 });
-
 document.getElementById("submit-cust-route").addEventListener('click', function(event) {
-    console.log(waypointsTest);
-    calculateOptimizedRoute(waypointsTest);
+    calculateOptimizedRoute();
 });
 
 
 function calculateOptimizedRoute(waypoints) {
     const exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
-    let startAndEnd = getStartAndEnd(waypoints);
-    const waypointLiteral = getWaypointLiteral(waypoints);
+    let startAndEnd = routeType.getStartAndEnd();
+    const waypointLiteral = getWaypointLiteral();
     const queryURL = `https://api.mapbox.com/optimized-trips/v1/mapbox/${exerciseType}/${waypointLiteral}?&overview=full&annotations=duration,distance&steps=true&geometries=geojson&source=first&destination=last&roundtrip=false&access_token=${mapboxgl.accessToken}`;
 
     if(map.getSource('route') != null && map.getLayer('optimized-route') != null){
@@ -237,8 +158,9 @@ function calculateOptimizedRoute(waypoints) {
         .catch(error => console.error('Error:', error));
 }
 
-function getWaypointLiteral(waypoints){
+function getWaypointLiteral(){
     let waypointLiteral = ``;
+    let waypoints = routeType.getAllWaypoints();
     waypoints.forEach(coordinate => {
         waypointLiteral = waypointLiteral.concat(coordinate[0], ",", coordinate[1], ";");
     });
@@ -246,17 +168,7 @@ function getWaypointLiteral(waypoints){
     return waypointLiteral;
 }
 
-function getStartAndEnd(waypoints){
-    let start = waypoints[0];
-    let end = waypoints[waypoints.length - 1];
-    return new Map([
-        ['start', start],
-        ['end', end]
-    ]);
-}
-
 const clearButtons = document.querySelectorAll(".clear-btn")
-
 clearButtons.forEach(button => {
     button.addEventListener('click', function(event){
         clearForm();
@@ -264,38 +176,18 @@ clearButtons.forEach(button => {
 });
 
 function clearForm(){
-    if(curStartMarker){
-        curStartMarker.remove();
-        curStartMarker = null;
+    // add logic to clear all markers and fields of all class objects
+    if (routeType != null){
+        routeType.clearForm();
     }
-    startingLocation.set('coordinates', null);
-    startingLocation.set('placeName', null);
-
-    if(curEndMarker){
-        curEndMarker.remove();
-        curEndMarker = null;
-    }
-    endingLocation.set('coordinates', null);
-    endingLocation.set('placeName', null);
-
-    if(curAdditionalMarker){
-        curAdditionalMarker.remove();
-        curAdditionalMarker = null;
-    }
-    additionalLocation.set('coordinates', null);
-    additionalLocation.set('placeName', null);
-    waypointsTest = [];
-
     const startingLocationFields = document.querySelectorAll('.startingLocation');
     startingLocationFields.forEach(field => {
        field.value = '';
     });
-
     const endingLocationFields = document.querySelectorAll('.endingLocation');
     endingLocationFields.forEach(field => {
        field.value = '';
     });
-
     if(map.getSource('route') != null && map.getLayer('optimized-route') != null){
         map.removeLayer('optimized-route')
         map.removeSource('route');
