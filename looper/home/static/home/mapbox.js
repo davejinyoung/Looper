@@ -126,7 +126,7 @@ function calculateOptimizedRoute() {
     const exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
     let startAndEnd = routeType.getStartAndEnd();
     const waypointLiteral = getWaypointLiteral();
-    const queryURL = `https://api.mapbox.com/directions/v5/mapbox/${exerciseType}/${waypointLiteral}?&alternatives=true&annotations=distance&continue_straight=false&geometries=geojson&overview=full&steps=false&access_token=${mapboxgl.accessToken}`;
+    const queryURL = `https://api.mapbox.com/directions/v5/mapbox/${exerciseType}/${waypointLiteral}?&alternatives=true&annotations=distance&continue_straight=false&geometries=geojson&overview=full&steps=true&access_token=${mapboxgl.accessToken}`;
 
     if (map.getSource('route') != null && map.getLayer('route') != null) {
         map.removeLayer('route');
