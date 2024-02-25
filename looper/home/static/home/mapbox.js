@@ -16,19 +16,25 @@ let routeType;
 
 // Script for selecting the type of route you want to create
 document.getElementById('randLoopButton').addEventListener('click', function(event) {
-    clearForm();
-    routeType = new RandomLoop();
-    showForm(routeType.form);
+    if(!(routeType instanceof RandomLoop)){
+        clearForm();
+        routeType = new RandomLoop();
+        showForm(routeType.form);
+    }
 });
 document.getElementById('randRouteButton').addEventListener('click', function(event) {
-    clearForm();
-    routeType = new RandomRoute();
-    showForm(routeType.form);
+    if(!(routeType instanceof RandomRoute)){
+        clearForm();
+        routeType = new RandomRoute();
+        showForm(routeType.form);
+    }
 });
 document.getElementById('customRouteButton').addEventListener('click', function(event) {
-    clearForm();
-    routeType = new CustomRoute();
-    showForm(routeType.form);
+    if(!(routeType instanceof CustomRoute)){
+        clearForm();
+        routeType = new CustomRoute();
+        showForm(routeType.form);
+    }
 });
 
 function showForm(selectedForm) {
@@ -53,7 +59,7 @@ const geocoder = new MapboxGeocoder({
 map.addControl(geocoder, 'top-left');
 geocoder.on('result', (event) => {
     const coordinates = event.result.geometry.coordinates;
-    addNewMarker(coordinates);
+    setMarker(coordinates);
     geocoder.clear();
 });
 
@@ -116,42 +122,62 @@ document.getElementById("submit-cust-route").addEventListener('click', function(
 });
 
 
-function calculateOptimizedRoute(waypoints) {
+function calculateOptimizedRoute() {
     const exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
     let startAndEnd = routeType.getStartAndEnd();
     const waypointLiteral = getWaypointLiteral();
-    const queryURL = `https://api.mapbox.com/optimized-trips/v1/mapbox/${exerciseType}/${waypointLiteral}?&overview=full&annotations=duration,distance&steps=true&geometries=geojson&source=first&destination=last&roundtrip=false&access_token=${mapboxgl.accessToken}`;
+    const queryURL = `https://api.mapbox.com/directions/v5/mapbox/${exerciseType}/${waypointLiteral}?&alternatives=true&annotations=distance&continue_straight=false&geometries=geojson&overview=full&steps=false&access_token=${mapboxgl.accessToken}`;
 
-    if(map.getSource('route') != null && map.getLayer('optimized-route') != null){
-        map.removeLayer('optimized-route')
+    if (map.getSource('route') != null && map.getLayer('route') != null) {
+        map.removeLayer('route');
         map.removeSource('route');
     }
 
     fetch(queryURL)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
-            const optimizedRoute = turf.featureCollection([turf.feature(data.trips[0].geometry)]);
-            const optimizedRouteDistance = data.trips[0].legs[0].distance / 1000;
-            console.log(optimizedRouteDistance.toFixed(2));
-            map.addSource('route', { type: 'geojson', data: optimizedRoute });
+            const routes = data.routes;
+            const allCoordinates = routes.reduce((acc, route) => {
+                return acc.concat(route.geometry.coordinates);
+            }, []);
+            const bounds = allCoordinates.reduce((bounds, coord) => {
+                return bounds.extend(coord);
+            }, new mapboxgl.LngLatBounds(allCoordinates[0], allCoordinates[0]));
+            map.fitBounds(bounds, {
+                padding: 50, // Adjust as needed
+                linear: true // Smooth animation
+            });
+
+            console.log(data.routes);
+            const route = data.routes[0];
+            const distance = route.distance / 1000.00;
+            console.log(`distance is: ${distance}`);
+            const routeCoordinates = route.geometry.coordinates;
+            map.addSource('route', { type: 'geojson', data: {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                    type: 'LineString',
+                    coordinates: routeCoordinates
+                }
+            }});
             map.addLayer({
-                id: 'optimized-route',
+                id: 'route',
                 type: 'line',
                 source: 'route',
                 layout: {
-                'line-join': 'round',
-                'line-cap': 'round'
+                    'line-join': 'round',
+                    'line-cap': 'round'
                 },
                 paint: {
-                'line-color': '#3887be',
-                'line-width': 5
+                    'line-color': '#3887be',
+                    'line-width': 5
                 }
-            });
-            map.flyTo({
-                center: [startAndEnd.get('end')[0], startAndEnd.get('end')[1]],
-                zoom: 14,
-                duration: 3000,
-                essential: true
             });
         })
         .catch(error => console.error('Error:', error));
@@ -187,8 +213,8 @@ function clearForm(){
     endingLocationFields.forEach(field => {
        field.value = '';
     });
-    if(map.getSource('route') != null && map.getLayer('optimized-route') != null){
-        map.removeLayer('optimized-route')
+    if(map.getSource('route') != null && map.getLayer('route') != null){
+        map.removeLayer('route')
         map.removeSource('route');
     }
 }

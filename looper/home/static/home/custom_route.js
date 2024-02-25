@@ -98,6 +98,12 @@ export class CustomRoute{
             this.curStartMarker.remove();
             this.curStartMarker = null;
         }
+
+        if(this.curAdditionalMarker){
+            this.curAdditionalMarker.remove();
+            this.curAdditionalMarker = null;
+        }
+
         this.startingLocation.set('coordinates', null);
         this.startingLocation.set('placeName', null);
 
