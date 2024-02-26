@@ -107,7 +107,9 @@ function setMarker(coordinates) {
 
 // Script to add an ending location
 document.body.addEventListener('click', function(event) {
-    routeType.populateLocationForm(event, map);
+    if (routeType){
+        routeType.populateLocationForm(event, map);
+    }
 });
 
 
@@ -123,7 +125,7 @@ document.getElementById("submit-cust-route").addEventListener('click', function(
 
 
 function calculateOptimizedRoute() {
-    const exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
+    let exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
     let startAndEnd = routeType.getStartAndEnd();
     const waypointLiteral = getWaypointLiteral();
     const queryURL = `https://api.mapbox.com/directions/v5/mapbox/${exerciseType}/${waypointLiteral}?&alternatives=true&annotations=distance&continue_straight=false&geometries=geojson&overview=full&steps=true&access_token=${mapboxgl.accessToken}`;
@@ -155,9 +157,9 @@ function calculateOptimizedRoute() {
 
             console.log(data.routes);
             const route = data.routes[0];
-            const distance = route.distance / 1000.00;
-            console.log(`distance is: ${distance}`);
             const routeCoordinates = route.geometry.coordinates;
+            routeDetails(route);
+
             map.addSource('route', { type: 'geojson', data: {
                 type: 'Feature',
                 properties: {},
@@ -199,6 +201,15 @@ clearButtons.forEach(button => {
         clearForm();
     });
 });
+
+function routeDetails(route){
+    console.log(route);
+    const distance = route.distance / 1000.00;
+    const distanceElem = document.createTextNode(`${distance.toFixed(2)} km`);
+    const routeDetails = document.getElementById('route-distance');
+    routeDetails.innerHTML = "";
+    routeDetails.appendChild(distanceElem);
+}
 
 function clearForm(){
     // add logic to clear all markers and fields of all class objects
