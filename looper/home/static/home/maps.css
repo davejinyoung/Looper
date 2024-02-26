@@ -1,7 +1,15 @@
+.map-container {
+  height: 94%;
+  display: grid;
+  grid-template-columns: 35% 65%;
+  padding: 1%;
+}
+
 #map {
-  height: 45%;
+  height: 100%;
   width: 100%;
   margin: auto;
+  border-radius: 10px;
 }
 
 /*
