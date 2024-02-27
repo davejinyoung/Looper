@@ -1,10 +1,11 @@
 export class CustomRoute{
     constructor(){
-        this.curStartMarker;
-        this.curAdditionalMarker;
-        this.startingLocation = new Map();
-        this.additionalLocation = new Map();
-        this.form = document.getElementById('customRouteForm');
+        this.curStartMarker; // current start marker "candidate"
+        this.curAdditionalMarker; // current additional marker "candidate"
+        this.startingLocation = new Map(); // starting location details. Stores placeName and coordinates
+        this.additionalLocation = new Map(); // additional location details. Stores placeName and coordinates
+        this.form = document.getElementById('customRouteForm'); // form element of custom route
+        this.isGenerated = false; // determines if route has been generated or not
         this.waypoints = {
             "coordinates": [],
             "markers": []
@@ -16,6 +17,11 @@ export class CustomRoute{
             return true;
         }
         return false;
+    }
+
+    get allMarkers(){
+        let markers = []
+        return [this.curStartMarker, this.curEndMarker]
     }
 
     #isStartingMarker(){
@@ -115,5 +121,12 @@ export class CustomRoute{
         this.additionalLocation.set('coordinates', null);
         this.additionalLocation.set('placeName', null);
         this.waypoints["coordinates"] = [];
+        this.isGenerated = false;
+    }
+
+    // TODO: this.waypoints should be a Map() object and key-val pairs should be marker-coordinates
+    enableDraggableMarkers(){
+        this.curStartMarker.setDraggable(true);
+        this.curEndMarker.setDraggable(true);
     }
 }

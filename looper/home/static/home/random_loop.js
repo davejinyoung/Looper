@@ -1,9 +1,10 @@
 export class RandomLoop{
     constructor(){
-        this.curStartMarker;
-        this.distance;
-        this.startingLocation = new Map();
-        this.form = document.getElementById('randLoopForm');
+        this.curStartMarker; // current start marker "candidate"
+        this.distance; // distance of route
+        this.startingLocation = new Map(); // starting location details. Stores placeName and coordinates
+        this.form = document.getElementById('randLoopForm'); // form element of random loop
+        this.isGenerated = false; // determines if route has been generated or not
     }
 
     get isCurrentForm(){
@@ -11,6 +12,10 @@ export class RandomLoop{
             return true;
         }
         return false;
+    }
+
+    get allMarkers(){
+        return [this.curStartMarker]
     }
 
     setMarkerWithCorrectType(coordinates, data, map){
@@ -58,5 +63,10 @@ export class RandomLoop{
         }
         this.startingLocation.set('coordinates', null);
         this.startingLocation.set('placeName', null);
+        this.isGenerated = false;
+    }
+
+    enableDraggableMarkers(){
+        this.curStartMarker.setDraggable(true);
     }
 }

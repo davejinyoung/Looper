@@ -88,7 +88,7 @@ geolocateControl.on('geolocate', (event) => {
 // Script for location of clicked area on map
 map.on('click', (event) => {
     const coordinates = [event.lngLat.lng, event.lngLat.lat];
-    if (routeType != null){
+    if (routeType && routeType.isGenerated == false){
         setMarker(coordinates);
     }
 });
@@ -112,15 +112,18 @@ document.body.addEventListener('click', function(event) {
     }
 });
 
-
+// TODO: clean this up
 document.getElementById("submit-rand-loop").addEventListener('click', function(event) {
     calculateOptimizedRoute();
+    enableDraggableMarkers();
 });
 document.getElementById("submit-rand-route").addEventListener('click', function(event) {
-    calculateOptimizedRoute()
+    calculateOptimizedRoute();
+    enableDraggableMarkers();
 });
 document.getElementById("submit-cust-route").addEventListener('click', function(event) {
     calculateOptimizedRoute();
+    enableDraggableMarkers();
 });
 
 
@@ -159,6 +162,7 @@ function calculateOptimizedRoute() {
             const route = data.routes[0];
             const routeCoordinates = route.geometry.coordinates;
             routeDetails(route);
+            routeType.isGenerated = true;
 
             map.addSource('route', { type: 'geojson', data: {
                 type: 'Feature',
@@ -183,6 +187,17 @@ function calculateOptimizedRoute() {
             });
         })
         .catch(error => console.error('Error:', error));
+}
+
+function enableDraggableMarkers(){
+    routeType.allMarkers.forEach(marker => {
+        marker.setDraggable(true);
+        marker.on('dragend', () => {
+            // TODO: this is merely just a POC example. Change this to make it work for all markers and routes.
+            routeType.startingLocation.set("coordinates", [marker.getLngLat().lng, marker.getLngLat().lat]);
+            calculateOptimizedRoute();
+        })
+    })
 }
 
 function getWaypointLiteral(){

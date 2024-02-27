@@ -1,10 +1,13 @@
+import { CustomRoute} from "./custom_route.js";
+
 export class RandomRoute{
     constructor(){
-        this.curStartMarker;
-        this.curEndMarker;
-        this.startingLocation = new Map();
-        this.endingLocation = new Map();
-        this.form = document.getElementById('randRouteForm');
+        this.curStartMarker; // current start marker "candidate"
+        this.curEndMarker; // current end marker "candidate"
+        this.startingLocation = new Map(); // starting location details. Stores placeName and coordinates
+        this.endingLocation = new Map(); // ending location details. Stores placeName and coordinates
+        this.form = document.getElementById('randRouteForm'); // form element of random route
+        this.isGenerated = false; // determines if route has been generated or not
     }
 
     get isCurrentForm(){
@@ -12,6 +15,10 @@ export class RandomRoute{
             return true;
         }
         return false;
+    }
+
+    get allMarkers(){
+        return [this.curStartMarker, this.curEndMarker]
     }
 
     #isStartingMarker(){
@@ -96,5 +103,6 @@ export class RandomRoute{
         }
         this.endingLocation.set('coordinates', null);
         this.endingLocation.set('placeName', null);
+        this.isGenerated = false;
     }
 }
