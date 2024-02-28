@@ -1,7 +1,10 @@
 import { CustomRoute} from "./custom_route.js";
 
+mapboxgl.accessToken = 'pk.eyJ1IjoiZGF2ZWppbnlvdW5nIiwiYSI6ImNscm84czI4ajA3ZHYya2w5c29wZmhwdWsifQ.4EwYfetiww7nb40hQV_RNQ';
+
 export class RandomRoute{
     constructor(){
+        this.markerMap = new Map();
         this.curStartMarker; // current start marker "candidate"
         this.curEndMarker; // current end marker "candidate"
         this.startingLocation = new Map(); // starting location details. Stores placeName and coordinates
@@ -18,7 +21,7 @@ export class RandomRoute{
     }
 
     get allMarkers(){
-        return [this.curStartMarker, this.curEndMarker]
+        return Array.from(this.markerMap.keys());
     }
 
     #isStartingMarker(){
@@ -30,34 +33,32 @@ export class RandomRoute{
 
     setMarkerWithCorrectType(coordinates, data, map){
         if (this.#isStartingMarker() == true) {
-            this.startingLocation.set("coordinates", coordinates);
-            this.startingLocation.set("placeName", data.features[0].place_name);
             if(this.curStartMarker != null){
+                this.markerMap.delete(this.curStartMarker);
                 this.curStartMarker.remove();
                 this.curStartMarker = null;
             }
-            const marker = new mapboxgl.Marker()
+            this.curStartMarker = new mapboxgl.Marker()
                 .setLngLat(coordinates)
-                .setPopup(new mapboxgl.Popup().setHTML(`<p>${this.startingLocation.get("placeName")}</p>
+                .setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>
                     <button type="button" class="startingPoint">Set Starting Point</button>`))
                 .addTo(map);
-            marker.togglePopup();
-            this.curStartMarker = marker;
+            this.curStartMarker.togglePopup();
+            this.markerMap.set(this.curStartMarker, {"coordinates": coordinates, "placeName": data.features[0].place_name});
         }
         else {
-            this.endingLocation.set("coordinates", coordinates);
-            this.endingLocation.set("placeName", data.features[0].place_name);
             if(this.curEndMarker != null){
+                this.markerMap.delete(this.curEndMarker);
                 this.curEndMarker.remove();
                 this.curEndMarker = null;
             }
-            const marker = new mapboxgl.Marker()
+            this.curEndMarker = new mapboxgl.Marker()
                 .setLngLat(coordinates)
-                .setPopup(new mapboxgl.Popup().setHTML(`<p>${this.endingLocation.get("placeName")}</p>
+                .setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>
                     <button type="button" class="endingPoint">Set Ending Point</button>`))
                 .addTo(map);
-            marker.togglePopup();
-            this.curEndMarker = marker;
+            this.curEndMarker.togglePopup();
+            this.markerMap.set(this.curEndMarker, {"coordinates": coordinates, "placeName": data.features[0].place_name});
         }
     }
 
@@ -66,26 +67,59 @@ export class RandomRoute{
             const allForms = document.querySelectorAll('form');
             allForms.forEach(form => {
                 const startingLocationInputs = form.querySelectorAll('.startingLocation');
-                startingLocationInputs.forEach(input => input.value = `${this.startingLocation.get("placeName")}`);
+                startingLocationInputs.forEach(input => input.value = `${this.markerMap.get(this.curStartMarker)["placeName"]}`);
             });
             this.curStartMarker.togglePopup();
         }
         else if (event.target.classList.contains('endingPoint')) {
             const randRouteForm = document.getElementById('randRouteForm');
-            randRouteForm.endingLocation.value = `${this.endingLocation.get("placeName")}`
+            randRouteForm.endingLocation.value = `${this.markerMap.get(this.curEndMarker)["placeName"]}`
             this.curEndMarker.togglePopup();
         }
     }
 
+    updateLocationForm(coordinates, marker){
+        var request = new XMLHttpRequest();
+        request.open('GET', `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?access_token=${mapboxgl.accessToken}`);
+
+        // TODO: Heavy clean-up. Funtionality is working though.
+        let startingLoc;
+        if(this.markerMap.get(marker) == this.markerMap.get(this.curStartMarker)){
+            startingLoc = true;
+        }
+        else {
+            startingLoc = false;
+        }
+        const randRouteForm = document.getElementById('randRouteForm');
+        request.onload = function() {
+            if (this.status >= 200 && this.status < 400) {
+                var data = JSON.parse(this.response);
+                if(startingLoc){
+                    const allForms = document.querySelectorAll('form');
+                    allForms.forEach(form => {
+                        const startingLocationInputs = form.querySelectorAll('.startingLocation');
+                        startingLocationInputs.forEach(input => input.value = `${data.features[0].place_name}`);
+                    });
+                }
+                else{
+                    const randRouteForm = document.getElementById('randRouteForm');
+                    randRouteForm.endingLocation.value = `${data.features[0].place_name}`
+                }
+
+            }
+        };
+        request.send();
+    }
+
     getStartAndEnd(){
         return new Map([
-            ['start', this.startingLocation.get("coordinates")],
-            ['end', this.endingLocation.get("coordinates")]
+            ['start', this.markerMap.get(this.curStartMarker)["coordinates"]],
+            ['end', this.markerMap.get(this.curEndMarker)["coordinates"]]
         ]);
     }
 
     getAllWaypoints(){
-        return [this.startingLocation.get("coordinates"), this.endingLocation.get("coordinates")];
+        return [this.markerMap.get(this.curStartMarker)["coordinates"], this.markerMap.get(this.curEndMarker)["coordinates"]];
     }
 
     clearForm(){
@@ -94,15 +128,11 @@ export class RandomRoute{
             this.curStartMarker.remove();
             this.curStartMarker = null;
         }
-        this.startingLocation.set('coordinates', null);
-        this.startingLocation.set('placeName', null);
-
         if(this.curEndMarker){
             this.curEndMarker.remove();
             this.curEndMarker = null;
         }
-        this.endingLocation.set('coordinates', null);
-        this.endingLocation.set('placeName', null);
+        this.markerMap.clear();
         this.isGenerated = false;
     }
 }

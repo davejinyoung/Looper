@@ -193,9 +193,14 @@ function enableDraggableMarkers(){
     routeType.allMarkers.forEach(marker => {
         marker.setDraggable(true);
         marker.on('dragend', () => {
-            // TODO: this is merely just a POC example. Change this to make it work for all markers and routes.
-            routeType.startingLocation.set("coordinates", [marker.getLngLat().lng, marker.getLngLat().lat]);
+            console.log(routeType.markerMap.get(routeType.curStartMarker));
+            console.log(routeType.markerMap.get(marker));
+            const coordinates = [marker.getLngLat().lng, marker.getLngLat().lat]
+            let markerDetails = routeType.markerMap.get(marker);
+            markerDetails["coordinates"] = coordinates;
+            routeType.markerMap.set(marker, markerDetails);
             calculateOptimizedRoute();
+            routeType.updateLocationForm(coordinates, marker);
         })
     })
 }
