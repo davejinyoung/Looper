@@ -104,15 +104,15 @@ export class RandomRoute{
 
     clearForm(){
         this.form.reset();
-        if(this.curStartMarkerBuff){
+        if(this.curStartMarkerBuff["marker"]){
             this.curStartMarkerBuff["marker"].remove();
             this.curStartMarkerBuff = {};
         }
-        if(this.curEndMarkerBuff){
+        if(this.curEndMarkerBuff["marker"]){
             this.curEndMarkerBuff["marker"].remove();
             this.curEndMarkerBuff = {};
         }
-        for(let marker of markerMap.keys()){
+        for(let marker of this.markerMap.keys()){
             marker.remove();
         }
         this.markerMap.clear();

@@ -111,11 +111,11 @@ export class CustomRoute{
 
     clearForm(){
         this.form.reset();
-        if(this.curStartMarkerBuff){
+        if(this.curStartMarkerBuff["marker"]){
             this.curStartMarkerBuff["marker"].remove();
             this.curStartMarkerBuff = {};
         }
-        if(this.curAdditionalMarkerBuff){
+        if(this.curAdditionalMarkerBuff["marker"]){
             this.curAdditionalMarkerBuff["marker"].remove();
             this.curAdditionalMarkerBuff = {};
         }
