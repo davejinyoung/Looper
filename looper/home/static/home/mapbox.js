@@ -93,13 +93,18 @@ map.on('click', (event) => {
     }
 });
 
-function setMarker(coordinates) {
+function setMarker(coordinates, marker) {
     var request = new XMLHttpRequest();
     request.open('GET', `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?access_token=${mapboxgl.accessToken}`);
     request.onload = function() {
         if (this.status >= 200 && this.status < 400) {
             var data = JSON.parse(this.response);
-            routeType.setMarkerWithCorrectType(coordinates, data, map);
+            if(marker == null){
+                routeType.setMarkerWithCorrectType(coordinates, data, map);
+            }
+            else{
+                routeType.updateLocationForm(coordinates, marker, data);
+            }
         }
     };
     request.send();
@@ -108,7 +113,7 @@ function setMarker(coordinates) {
 // Script to add an ending location
 document.body.addEventListener('click', function(event) {
     if (routeType){
-        routeType.populateLocationForm(event, map);
+        routeType.saveMarker(event, map);
     }
 });
 
@@ -193,14 +198,12 @@ function enableDraggableMarkers(){
     routeType.allMarkers.forEach(marker => {
         marker.setDraggable(true);
         marker.on('dragend', () => {
-            console.log(routeType.markerMap.get(routeType.curStartMarker));
-            console.log(routeType.markerMap.get(marker));
-            const coordinates = [marker.getLngLat().lng, marker.getLngLat().lat]
+            const coordinates = [marker.getLngLat().lng, marker.getLngLat().lat];
             let markerDetails = routeType.markerMap.get(marker);
             markerDetails["coordinates"] = coordinates;
             routeType.markerMap.set(marker, markerDetails);
             calculateOptimizedRoute();
-            routeType.updateLocationForm(coordinates, marker);
+            setMarker(coordinates, marker);
         })
     })
 }

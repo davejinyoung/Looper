@@ -1,15 +1,10 @@
 export class CustomRoute{
     constructor(){
-        this.curStartMarker; // current start marker "candidate"
-        this.curAdditionalMarker; // current additional marker "candidate"
-        this.startingLocation = new Map(); // starting location details. Stores placeName and coordinates
-        this.additionalLocation = new Map(); // additional location details. Stores placeName and coordinates
+        this.markerMap = new Map();
+        this.curStartMarkerBuff = {}; // current start marker "candidate"
+        this.curAdditionalMarkerBuff = {}; // current additional marker "candidate"
         this.form = document.getElementById('customRouteForm'); // form element of custom route
         this.isGenerated = false; // determines if route has been generated or not
-        this.waypoints = {
-            "coordinates": [],
-            "markers": []
-        };
     }
 
     get isCurrentForm(){
@@ -20,8 +15,7 @@ export class CustomRoute{
     }
 
     get allMarkers(){
-        let markers = []
-        return [this.curStartMarker, this.curEndMarker]
+        return Array.from(this.markerMap.keys());
     }
 
     #isStartingMarker(){
@@ -33,61 +27,74 @@ export class CustomRoute{
 
     setMarkerWithCorrectType(coordinates, data, map){
         if (this.#isStartingMarker() == true) {
-            this.startingLocation.set("coordinates", coordinates);
-            this.startingLocation.set("placeName", data.features[0].place_name);
-            if(this.curStartMarker != null){
-                this.curStartMarker.remove();
-                this.curStartMarker = null;
+            if(this.curStartMarkerBuff["marker"] != null){
+                this.curStartMarkerBuff["marker"].remove();
+                this.curStartMarkerBuff = {};
             }
-            const marker = new mapboxgl.Marker()
+            this.curStartMarkerBuff["marker"] = new mapboxgl.Marker()
                 .setLngLat(coordinates)
-                .setPopup(new mapboxgl.Popup().setHTML(`<p>${this.startingLocation.get("placeName")}</p>
+                .setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>
                     <button type="button" class="startingPoint">Set Starting Point</button>`))
                 .addTo(map);
-            marker.togglePopup();
-            this.curStartMarker = marker;
+            this.curStartMarkerBuff["marker"].togglePopup();
+            this.curStartMarkerBuff["coordinates"] = coordinates;
+            this.curStartMarkerBuff["placeName"] = data.features[0].place_name;
         }
         else {
-            this.additionalLocation.set("coordinates", coordinates);
-            this.additionalLocation.set("placeName", data.features[0].place_name);
-            if(this.curAdditionalMarker != null){
-                this.curAdditionalMarker.remove();
-                this.curAdditionalMarker = null;
+            if(this.curAdditionalMarkerBuff["marker"] != null){
+                this.curAdditionalMarkerBuff["marker"].remove();
+                this.curAdditionalMarkerBuff["marker"] = [];
             }
-            const marker = new mapboxgl.Marker()
+            this.curAdditionalMarkerBuff["marker"] = new mapboxgl.Marker()
                 .setLngLat(coordinates)
-                .setPopup(new mapboxgl.Popup().setHTML(`<p>${this.additionalLocation.get("placeName")}</p>
+                .setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>
                     <button type="button" class="additionalPoint">Set Additional Point</button>`))
                 .addTo(map);
-            marker.togglePopup();
-            this.curAdditionalMarker = marker;
+            this.curAdditionalMarkerBuff["marker"].togglePopup();
+            this.curAdditionalMarkerBuff["coordinates"] = coordinates;
+            this.curAdditionalMarkerBuff["placeName"] = data.features[0].place_name;
         }
     }
 
-    populateLocationForm(event, map){
+    saveMarker(event, map){
         if (event.target.classList.contains('startingPoint')) {
+            const allForms = document.querySelectorAll('form');
+            this.markerMap.set(this.curStartMarkerBuff["marker"], {"coordinates": this.curStartMarkerBuff["coordinates"], "placeName": this.curStartMarkerBuff["placeName"]});
+            allForms.forEach(form => {
+                const startingLocationInputs = form.querySelectorAll('.startingLocation');
+                startingLocationInputs.forEach(input => input.value = `${this.markerMap.get(this.curStartMarkerBuff["marker"])["placeName"]}`);
+            });
+            this.curStartMarkerBuff["marker"].togglePopup();
+        }
+        else if (event.target.classList.contains('additionalPoint')) {
+            const marker = new mapboxgl.Marker()
+                .setLngLat(this.curAdditionalMarkerBuff["coordinates"])
+                .addTo(map);
+            this.markerMap.set(marker, {"coordinates": this.curAdditionalMarkerBuff["coordinates"], "placeName": this.curAdditionalMarkerBuff["placeName"]});
+            this.curAdditionalMarkerBuff["marker"].togglePopup();
+        }
+    }
+
+    updateLocationForm(coordinates, marker, data){
+        if(this.markerMap.get(marker) == this.markerMap.get(this.curStartMarkerBuff["marker"])){
             const allForms = document.querySelectorAll('form');
             allForms.forEach(form => {
                 const startingLocationInputs = form.querySelectorAll('.startingLocation');
-                startingLocationInputs.forEach(input => input.value = `${this.startingLocation.get("placeName")}`);
+                startingLocationInputs.forEach(input => input.value = `${data.features[0].place_name}`);
             });
-            this.curStartMarker.togglePopup();
-            this.waypoints["coordinates"].push(this.startingLocation.get("coordinates"));
         }
-        else if (event.target.classList.contains('additionalPoint')) {
-            this.curAdditionalMarker.remove();
-            this.curAdditionalMarker = null;
-            const marker = new mapboxgl.Marker()
-                .setLngLat(this.additionalLocation.get("coordinates"))
-                .addTo(map);
-            this.waypoints["markers"].push(marker);
-            this.waypoints["coordinates"].push(this.additionalLocation.get("coordinates"));
+        else {
+            const randRouteForm = document.getElementById('custRouteForm');
+            // TODO: create forms for additional locations
+//            randRouteForm.endingLocation.value = `${data.features[0].place_name}`
         }
     }
 
     getStartAndEnd(){
-        let start = this.waypoints["coordinates"][0];
-        let end = this.waypoints["coordinates"][this.waypoints["coordinates"].length - 1];
+        let markerList = Array.from(this.markerMap.keys());
+        let endMarker = markerList[markerList.length - 1];
+        let start = this.markerMap.get(this.curStartMarkerBuff["marker"])["coordinates"];
+        let end = this.markerMap.get(endMarker)["coordinates"];
         return new Map([
             ['start', start],
             ['end', end]
@@ -95,38 +102,24 @@ export class CustomRoute{
     }
 
     getAllWaypoints(){
-        return this.waypoints["coordinates"];
+        let waypointsList = [];
+        this.markerMap.forEach(function(value, key) {
+            waypointsList.push(value["coordinates"]);
+        })
+        return waypointsList;
     }
 
     clearForm(){
         this.form.reset();
-        if(this.curStartMarker){
-            this.curStartMarker.remove();
-            this.curStartMarker = null;
+        if(this.curStartMarkerBuff){
+            this.curStartMarkerBuff["marker"].remove();
+            this.curStartMarkerBuff = {};
         }
-
-        if(this.curAdditionalMarker){
-            this.curAdditionalMarker.remove();
-            this.curAdditionalMarker = null;
+        if(this.curAdditionalMarkerBuff){
+            this.curAdditionalMarkerBuff["marker"].remove();
+            this.curAdditionalMarkerBuff = {};
         }
-
-        this.startingLocation.set('coordinates', null);
-        this.startingLocation.set('placeName', null);
-
-        this.waypoints["markers"].forEach(marker => {
-            marker.remove();
-        });
-        this.waypoints["markers"] = [];
-
-        this.additionalLocation.set('coordinates', null);
-        this.additionalLocation.set('placeName', null);
-        this.waypoints["coordinates"] = [];
+        this.markerMap.clear();
         this.isGenerated = false;
-    }
-
-    // TODO: this.waypoints should be a Map() object and key-val pairs should be marker-coordinates
-    enableDraggableMarkers(){
-        this.curStartMarker.setDraggable(true);
-        this.curEndMarker.setDraggable(true);
     }
 }

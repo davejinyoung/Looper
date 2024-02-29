@@ -1,14 +1,11 @@
 import { CustomRoute} from "./custom_route.js";
 
-mapboxgl.accessToken = 'pk.eyJ1IjoiZGF2ZWppbnlvdW5nIiwiYSI6ImNscm84czI4ajA3ZHYya2w5c29wZmhwdWsifQ.4EwYfetiww7nb40hQV_RNQ';
 
 export class RandomRoute{
     constructor(){
         this.markerMap = new Map();
-        this.curStartMarker; // current start marker "candidate"
-        this.curEndMarker; // current end marker "candidate"
-        this.startingLocation = new Map(); // starting location details. Stores placeName and coordinates
-        this.endingLocation = new Map(); // ending location details. Stores placeName and coordinates
+        this.curStartMarkerBuff = {}; // current start marker "candidate"
+        this.curEndMarkerBuff = {}; // current end marker "candidate"
         this.form = document.getElementById('randRouteForm'); // form element of random route
         this.isGenerated = false; // determines if route has been generated or not
     }
@@ -33,104 +30,87 @@ export class RandomRoute{
 
     setMarkerWithCorrectType(coordinates, data, map){
         if (this.#isStartingMarker() == true) {
-            if(this.curStartMarker != null){
-                this.markerMap.delete(this.curStartMarker);
-                this.curStartMarker.remove();
-                this.curStartMarker = null;
+            if(this.curStartMarkerBuff["marker"] != null){
+                this.curStartMarkerBuff["marker"].remove();
+                this.curStartMarkerBuff = {};
             }
-            this.curStartMarker = new mapboxgl.Marker()
+            this.curStartMarkerBuff["marker"] = new mapboxgl.Marker()
                 .setLngLat(coordinates)
                 .setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>
                     <button type="button" class="startingPoint">Set Starting Point</button>`))
                 .addTo(map);
-            this.curStartMarker.togglePopup();
-            this.markerMap.set(this.curStartMarker, {"coordinates": coordinates, "placeName": data.features[0].place_name});
+            this.curStartMarkerBuff["marker"].togglePopup();
+            this.curStartMarkerBuff["coordinates"] = coordinates;
+            this.curStartMarkerBuff["placeName"] = data.features[0].place_name;
         }
         else {
-            if(this.curEndMarker != null){
-                this.markerMap.delete(this.curEndMarker);
-                this.curEndMarker.remove();
-                this.curEndMarker = null;
+            if(this.curEndMarkerBuff["marker"] != null){
+                this.curEndMarkerBuff["marker"].remove();
+                this.curEndMarkerBuff["marker"] = [];
             }
-            this.curEndMarker = new mapboxgl.Marker()
+            this.curEndMarkerBuff["marker"] = new mapboxgl.Marker()
                 .setLngLat(coordinates)
                 .setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>
                     <button type="button" class="endingPoint">Set Ending Point</button>`))
                 .addTo(map);
-            this.curEndMarker.togglePopup();
-            this.markerMap.set(this.curEndMarker, {"coordinates": coordinates, "placeName": data.features[0].place_name});
+            this.curEndMarkerBuff["marker"].togglePopup();
+            this.curEndMarkerBuff["coordinates"] = coordinates;
+            this.curEndMarkerBuff["placeName"] = data.features[0].place_name;
         }
     }
 
-    populateLocationForm(event){
+    saveMarker(event){
         if (event.target.classList.contains('startingPoint')) {
             const allForms = document.querySelectorAll('form');
+            this.markerMap.set(this.curStartMarkerBuff["marker"], {"coordinates": this.curStartMarkerBuff["coordinates"], "placeName": this.curStartMarkerBuff["placeName"]});
             allForms.forEach(form => {
                 const startingLocationInputs = form.querySelectorAll('.startingLocation');
-                startingLocationInputs.forEach(input => input.value = `${this.markerMap.get(this.curStartMarker)["placeName"]}`);
+                startingLocationInputs.forEach(input => input.value = `${this.markerMap.get(this.curStartMarkerBuff["marker"])["placeName"]}`);
             });
-            this.curStartMarker.togglePopup();
+            this.curStartMarkerBuff["marker"].togglePopup();
         }
         else if (event.target.classList.contains('endingPoint')) {
             const randRouteForm = document.getElementById('randRouteForm');
-            randRouteForm.endingLocation.value = `${this.markerMap.get(this.curEndMarker)["placeName"]}`
-            this.curEndMarker.togglePopup();
+            this.markerMap.set(this.curEndMarkerBuff["marker"], {"coordinates": this.curEndMarkerBuff["coordinates"], "placeName": this.curEndMarkerBuff["placeName"]});
+            randRouteForm.endingLocation.value = `${this.markerMap.get(this.curEndMarkerBuff["marker"])["placeName"]}`
+            this.curEndMarkerBuff["marker"].togglePopup();
         }
     }
 
-    updateLocationForm(coordinates, marker){
-        var request = new XMLHttpRequest();
-        request.open('GET', `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?access_token=${mapboxgl.accessToken}`);
-
-        // TODO: Heavy clean-up. Funtionality is working though.
-        let startingLoc;
-        if(this.markerMap.get(marker) == this.markerMap.get(this.curStartMarker)){
-            startingLoc = true;
+    updateLocationForm(coordinates, marker, data){
+        if(this.markerMap.get(marker) == this.markerMap.get(this.curStartMarkerBuff["marker"])){
+            const allForms = document.querySelectorAll('form');
+            allForms.forEach(form => {
+                const startingLocationInputs = form.querySelectorAll('.startingLocation');
+                startingLocationInputs.forEach(input => input.value = `${data.features[0].place_name}`);
+            });
         }
         else {
-            startingLoc = false;
+            const randRouteForm = document.getElementById('randRouteForm');
+            randRouteForm.endingLocation.value = `${data.features[0].place_name}`
         }
-        const randRouteForm = document.getElementById('randRouteForm');
-        request.onload = function() {
-            if (this.status >= 200 && this.status < 400) {
-                var data = JSON.parse(this.response);
-                if(startingLoc){
-                    const allForms = document.querySelectorAll('form');
-                    allForms.forEach(form => {
-                        const startingLocationInputs = form.querySelectorAll('.startingLocation');
-                        startingLocationInputs.forEach(input => input.value = `${data.features[0].place_name}`);
-                    });
-                }
-                else{
-                    const randRouteForm = document.getElementById('randRouteForm');
-                    randRouteForm.endingLocation.value = `${data.features[0].place_name}`
-                }
-
-            }
-        };
-        request.send();
     }
 
     getStartAndEnd(){
         return new Map([
-            ['start', this.markerMap.get(this.curStartMarker)["coordinates"]],
-            ['end', this.markerMap.get(this.curEndMarker)["coordinates"]]
+            ['start', this.markerMap.get(this.curStartMarkerBuff["marker"])["coordinates"]],
+            ['end', this.markerMap.get(this.curEndMarkerBuff["marker"])["coordinates"]]
         ]);
     }
 
     getAllWaypoints(){
-        return [this.markerMap.get(this.curStartMarker)["coordinates"], this.markerMap.get(this.curEndMarker)["coordinates"]];
+        return [this.markerMap.get(this.curStartMarkerBuff["marker"])["coordinates"], this.markerMap.get(this.curEndMarkerBuff["marker"])["coordinates"]];
     }
 
     clearForm(){
         this.form.reset();
-        if(this.curStartMarker){
-            this.curStartMarker.remove();
-            this.curStartMarker = null;
+        if(this.curStartMarkerBuff){
+            this.curStartMarkerBuff["marker"].remove();
+            this.curStartMarkerBuff = {};
         }
-        if(this.curEndMarker){
-            this.curEndMarker.remove();
-            this.curEndMarker = null;
+        if(this.curEndMarkerBuff){
+            this.curEndMarkerBuff["marker"].remove();
+            this.curEndMarkerBuff = {};
         }
         this.markerMap.clear();
         this.isGenerated = false;

@@ -34,7 +34,7 @@ export class RandomLoop{
         this.curStartMarker = marker;
     }
 
-    populateLocationForm(event){
+    saveMarker(event){
         if (event.target.classList.contains('startingPoint')) {
             const allForms = document.querySelectorAll('form');
             allForms.forEach(form => {
