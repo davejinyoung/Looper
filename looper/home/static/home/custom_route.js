@@ -43,7 +43,7 @@ export class CustomRoute{
         else {
             if(this.curAdditionalMarkerBuff["marker"] != null){
                 this.curAdditionalMarkerBuff["marker"].remove();
-                this.curAdditionalMarkerBuff["marker"] = [];
+                this.curAdditionalMarkerBuff = {};
             }
             this.curAdditionalMarkerBuff["marker"] = new mapboxgl.Marker()
                 .setLngLat(coordinates)
@@ -71,7 +71,7 @@ export class CustomRoute{
                 .setLngLat(this.curAdditionalMarkerBuff["coordinates"])
                 .addTo(map);
             this.markerMap.set(marker, {"coordinates": this.curAdditionalMarkerBuff["coordinates"], "placeName": this.curAdditionalMarkerBuff["placeName"]});
-            this.curAdditionalMarkerBuff["marker"].togglePopup();
+            this.curAdditionalMarkerBuff["marker"].remove();
         }
     }
 
@@ -103,7 +103,7 @@ export class CustomRoute{
 
     getAllWaypoints(){
         let waypointsList = [];
-        this.markerMap.forEach(function(value, key) {
+        this.markerMap.forEach(function(value) {
             waypointsList.push(value["coordinates"]);
         })
         return waypointsList;
@@ -118,6 +118,9 @@ export class CustomRoute{
         if(this.curAdditionalMarkerBuff){
             this.curAdditionalMarkerBuff["marker"].remove();
             this.curAdditionalMarkerBuff = {};
+        }
+        for(let marker of this.markerMap.keys()){
+            marker.remove();
         }
         this.markerMap.clear();
         this.isGenerated = false;

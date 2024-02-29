@@ -112,6 +112,9 @@ export class RandomRoute{
             this.curEndMarkerBuff["marker"].remove();
             this.curEndMarkerBuff = {};
         }
+        for(let marker of markerMap.keys()){
+            marker.remove();
+        }
         this.markerMap.clear();
         this.isGenerated = false;
     }
