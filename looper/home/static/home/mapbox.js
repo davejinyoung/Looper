@@ -155,13 +155,17 @@ function calculateOptimizedRoute() {
             const allCoordinates = routes.reduce((acc, route) => {
                 return acc.concat(route.geometry.coordinates);
             }, []);
-            const bounds = allCoordinates.reduce((bounds, coord) => {
-                return bounds.extend(coord);
-            }, new mapboxgl.LngLatBounds(allCoordinates[0], allCoordinates[0]));
-            map.fitBounds(bounds, {
-                padding: 50, // Adjust as needed
-                linear: true // Smooth animation
-            });
+
+            if(!routeType.isGenerated){
+                const bounds = allCoordinates.reduce((bounds, coord) => {
+                    return bounds.extend(coord);
+                }, new mapboxgl.LngLatBounds(allCoordinates[0], allCoordinates[0]));
+                map.fitBounds(bounds, {
+                    padding: 50, // Adjust as needed
+                    linear: true // Smooth animation
+                });
+            }
+
 
             console.log(data.routes);
             const route = data.routes[0];
