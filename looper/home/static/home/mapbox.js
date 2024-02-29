@@ -251,4 +251,6 @@ function clearForm(){
         map.removeLayer('route')
         map.removeSource('route');
     }
+    const routeDetails = document.getElementById('route-distance');
+    routeDetails.innerHTML = "";
 }
