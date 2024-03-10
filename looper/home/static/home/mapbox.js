@@ -20,6 +20,7 @@ document.getElementById('randLoopButton').addEventListener('click', function(eve
         clearForm();
         routeType = new RandomLoop();
         showForm(routeType.form);
+        initializeGeocoders();
     }
 });
 document.getElementById('randRouteButton').addEventListener('click', function(event) {
@@ -27,6 +28,7 @@ document.getElementById('randRouteButton').addEventListener('click', function(ev
         clearForm();
         routeType = new RandomRoute();
         showForm(routeType.form);
+        initializeGeocoders();
     }
 });
 document.getElementById('customRouteButton').addEventListener('click', function(event) {
@@ -34,8 +36,16 @@ document.getElementById('customRouteButton').addEventListener('click', function(
         clearForm();
         routeType = new CustomRoute();
         showForm(routeType.form);
+        initializeGeocoders();
     }
 });
+
+function initializeGeocoders(){
+    routeType.geocoders.on('result', (event) => {
+        const coordinates = event.result.geometry.coordinates;
+        setMarker(coordinates);
+    });
+}
 
 function showForm(selectedForm) {
     // Hide all forms
@@ -47,21 +57,15 @@ function showForm(selectedForm) {
         selectedForm.classList.remove('d-none');
     }
     document.getElementById("universalFormItems").classList.remove('d-none');
+    routeType.createSearchBox(map, mapboxgl.accessToken);
+    if(selectedForm.querySelector('.mapboxgl-ctrl-geocoder') == null){
+        console.log(selectedForm.querySelector('mapboxgl-ctrl-geocoder'));
+        selectedForm.insertBefore(geocoder.onAdd(map), selectedForm.querySelector('.mb-3'));
+    }
 }
 
 // Script for searching for location
-const geocoder = new MapboxGeocoder({
-    accessToken: mapboxgl.accessToken,
-    mapboxgl: mapboxgl,
-    reverseGeocode: true,
-    placeholder: "Enter Address"
-});
-map.addControl(geocoder, 'top-left');
-geocoder.on('result', (event) => {
-    const coordinates = event.result.geometry.coordinates;
-    setMarker(coordinates);
-    geocoder.clear();
-});
+
 
 // Script for finding current location
 const geolocateControl = new mapboxgl.GeolocateControl({
@@ -110,7 +114,6 @@ function setMarker(coordinates, marker) {
     request.send();
 }
 
-// Script to add an ending location
 document.body.addEventListener('click', function(event) {
     if (routeType){
         routeType.saveMarker(event, map);

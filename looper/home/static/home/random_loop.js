@@ -5,6 +5,7 @@ export class RandomLoop{
         this.startingLocation = new Map(); // starting location details. Stores placeName and coordinates
         this.form = document.getElementById('randLoopForm'); // form element of random loop
         this.isGenerated = false; // determines if route has been generated or not
+        this.geocoders;
     }
 
     get isCurrentForm(){
@@ -16,6 +17,18 @@ export class RandomLoop{
 
     get allMarkers(){
         return [this.curStartMarker]
+    }
+
+    createSearchBox(map, token){
+        this.geocoders = new MapboxGeocoder({
+            accessToken: token,
+            mapboxgl: mapboxgl,
+            reverseGeocode: true,
+            placeholder: "Enter Starting Address"
+        });
+        if(this.form.querySelector('.mapboxgl-ctrl-geocoder') == null){
+            this.form.insertBefore(this.geocoders.onAdd(map), this.form.querySelector('.mb-3'));
+        }
     }
 
     setMarkerWithCorrectType(coordinates, data, map){

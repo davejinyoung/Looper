@@ -8,6 +8,7 @@ export class RandomRoute{
         this.curEndMarkerBuff = {}; // current end marker "candidate"
         this.form = document.getElementById('randRouteForm'); // form element of random route
         this.isGenerated = false; // determines if route has been generated or not
+        this.geocoders;
     }
 
     get isCurrentForm(){
@@ -19,6 +20,18 @@ export class RandomRoute{
 
     get allMarkers(){
         return Array.from(this.markerMap.keys());
+    }
+
+    createSearchBox(map, token){
+        this.geocoders = new MapboxGeocoder({
+            accessToken: token,
+            mapboxgl: mapboxgl,
+            reverseGeocode: true,
+            placeholder: "Enter Starting Address"
+        });
+        if(this.form.querySelector('.mapboxgl-ctrl-geocoder') == null){
+            this.form.insertBefore(this.geocoders.onAdd(map), this.form.querySelector('.mb-3'));
+        }
     }
 
     #isStartingMarker(){
