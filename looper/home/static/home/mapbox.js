@@ -25,6 +25,7 @@ document.getElementById('randLoopButton').addEventListener('click', function(eve
 });
 document.getElementById('randRouteButton').addEventListener('click', function(event) {
     if(!(routeType instanceof RandomRoute)){
+
         clearForm();
         routeType = new RandomRoute();
         showForm(routeType.form);
@@ -41,10 +42,13 @@ document.getElementById('customRouteButton').addEventListener('click', function(
 });
 
 function initializeGeocoders(){
-    routeType.geocoders.on('result', (event) => {
-        const coordinates = event.result.geometry.coordinates;
-        setMarker(coordinates);
-    });
+    routeType.createSearchBox(map, mapboxgl.accessToken);
+    routeType.allGeocoders.forEach(geocoder => {
+        geocoder.on('result', (event) => {
+            const coordinates = event.result.geometry.coordinates;
+            setMarker(coordinates);
+        });
+    });  
 }
 
 function showForm(selectedForm) {
@@ -57,15 +61,7 @@ function showForm(selectedForm) {
         selectedForm.classList.remove('d-none');
     }
     document.getElementById("universalFormItems").classList.remove('d-none');
-    routeType.createSearchBox(map, mapboxgl.accessToken);
-    if(selectedForm.querySelector('.mapboxgl-ctrl-geocoder') == null){
-        console.log(selectedForm.querySelector('mapboxgl-ctrl-geocoder'));
-        selectedForm.insertBefore(geocoder.onAdd(map), selectedForm.querySelector('.mb-3'));
-    }
 }
-
-// Script for searching for location
-
 
 // Script for finding current location
 const geolocateControl = new mapboxgl.GeolocateControl({

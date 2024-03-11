@@ -5,7 +5,8 @@ export class CustomRoute{
         this.curAdditionalMarkerBuff = {}; // current additional marker "candidate"
         this.form = document.getElementById('customRouteForm'); // form element of custom route
         this.isGenerated = false; // determines if route has been generated or not
-        this.geocoders;
+        this.startingGeocoder;
+        this.additionalGeocoders = [];
     }
 
     get isCurrentForm(){
@@ -19,16 +20,34 @@ export class CustomRoute{
         return Array.from(this.markerMap.keys());
     }
 
+    get allGeocoders(){
+        return this.additionalGeocoders.unshift(this.startingGeocoder);
+    }
+
     createSearchBox(map, token){
-        this.geocoders = new MapboxGeocoder({
+        this.startingGeocoder = new MapboxGeocoder({
             accessToken: token,
             mapboxgl: mapboxgl,
             reverseGeocode: true,
-            placeholder: "Enter Starting Address"
+            placeholder: "Enter Starting Address or Set Point on the Map"
         });
         if(this.form.querySelector('.mapboxgl-ctrl-geocoder') == null){
-            this.form.insertBefore(this.geocoders.onAdd(map), this.form.querySelector('.mb-3'));
+            this.form.insertBefore(this.startingGeocoder.onAdd(map), this.form.querySelector('.mb-3'));
+            this.form.querySelector('.mapboxgl-ctrl-geocoder--input').classList.add('startingLocation');
         }
+
+        // TODO: Clean up tester variables
+        var tester = new MapboxGeocoder({
+            accessToken: token,
+            mapboxgl: mapboxgl,
+            reverseGeocode: true,
+            placeholder: "Enter Additional Address or Set Point on the Map"
+        });
+        if(this.form.querySelector('.mapboxgl-ctrl-geocoder') == null){
+            this.form.insertBefore(this.startingGeocoder.onAdd(map), this.form.querySelector('.startingLocation'));
+            this.form.querySelector('.mapboxgl-ctrl-geocoder--input').classList.add('additionalLocation');
+        }
+        this.additionalGeocoders.push(tester);
     }
 
     #isStartingMarker(){
@@ -71,11 +90,10 @@ export class CustomRoute{
 
     saveMarker(event, map){
         if (event.target.classList.contains('startingPoint')) {
-            const allForms = document.querySelectorAll('form');
             this.markerMap.set(this.curStartMarkerBuff["marker"], {"coordinates": this.curStartMarkerBuff["coordinates"], "placeName": this.curStartMarkerBuff["placeName"]});
-            allForms.forEach(form => {
-                const startingLocationInputs = form.querySelectorAll('.startingLocation');
-                startingLocationInputs.forEach(input => input.value = `${this.markerMap.get(this.curStartMarkerBuff["marker"])["placeName"]}`);
+            const startingLocationInputs = this.form.querySelectorAll('.startingLocation');
+            startingLocationInputs.forEach(input => {
+                input.value = `${this.markerMap.get(this.curStartMarkerBuff["marker"])["placeName"]}`;
             });
             this.curStartMarkerBuff["marker"].togglePopup();
         }

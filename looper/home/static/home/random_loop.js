@@ -5,7 +5,7 @@ export class RandomLoop{
         this.startingLocation = new Map(); // starting location details. Stores placeName and coordinates
         this.form = document.getElementById('randLoopForm'); // form element of random loop
         this.isGenerated = false; // determines if route has been generated or not
-        this.geocoders;
+        this.startingGeocoder;
     }
 
     get isCurrentForm(){
@@ -19,15 +19,20 @@ export class RandomLoop{
         return [this.curStartMarker]
     }
 
+    get allGeocoders(){
+        return [this.startingGeocoder]
+    }
+
     createSearchBox(map, token){
-        this.geocoders = new MapboxGeocoder({
+        this.startingGeocoder = new MapboxGeocoder({
             accessToken: token,
             mapboxgl: mapboxgl,
             reverseGeocode: true,
-            placeholder: "Enter Starting Address"
+            placeholder: "Enter Starting Address or Set Point on the Map"
         });
         if(this.form.querySelector('.mapboxgl-ctrl-geocoder') == null){
-            this.form.insertBefore(this.geocoders.onAdd(map), this.form.querySelector('.mb-3'));
+            this.form.insertBefore(this.startingGeocoder.onAdd(map), this.form.querySelector('.mb-3'));
+            this.form.querySelector('.mapboxgl-ctrl-geocoder--input').classList.add('startingLocation');
         }
     }
 
@@ -49,10 +54,9 @@ export class RandomLoop{
 
     saveMarker(event){
         if (event.target.classList.contains('startingPoint')) {
-            const allForms = document.querySelectorAll('form');
-            allForms.forEach(form => {
-                const startingLocationInputs = form.querySelectorAll('.startingLocation');
-                startingLocationInputs.forEach(input => input.value = `${this.startingLocation.get("placeName")}`);
+            const startingLocationInputs = this.form.querySelectorAll('.startingLocation');
+            startingLocationInputs.forEach(input => {
+                input.value = `${this.startingLocation.get("placeName")}`
             });
             this.curStartMarker.togglePopup();
         }

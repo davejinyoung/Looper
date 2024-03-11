@@ -8,7 +8,8 @@ export class RandomRoute{
         this.curEndMarkerBuff = {}; // current end marker "candidate"
         this.form = document.getElementById('randRouteForm'); // form element of random route
         this.isGenerated = false; // determines if route has been generated or not
-        this.geocoders;
+        this.startingGeocoder;
+        this.endingGeocoder;
     }
 
     get isCurrentForm(){
@@ -22,15 +23,34 @@ export class RandomRoute{
         return Array.from(this.markerMap.keys());
     }
 
+    get allGeocoders(){
+        return [this.startingGeocoder, this.endingGeocoder]
+    }
+
     createSearchBox(map, token){
-        this.geocoders = new MapboxGeocoder({
+        this.startingGeocoder = new MapboxGeocoder({
             accessToken: token,
             mapboxgl: mapboxgl,
             reverseGeocode: true,
-            placeholder: "Enter Starting Address"
+            placeholder: "Enter Starting Address or Set Point on the Map"
         });
-        if(this.form.querySelector('.mapboxgl-ctrl-geocoder') == null){
-            this.form.insertBefore(this.geocoders.onAdd(map), this.form.querySelector('.mb-3'));
+        if(this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation') == null){
+            this.form.insertBefore(this.startingGeocoder.onAdd(map), this.form.querySelector('.mb-3'));
+            this.form.querySelector('.mapboxgl-ctrl-geocoder').classList.add('startingLocation');
+            this.form.querySelector('.mapboxgl-ctrl-geocoder--input').classList.add('startingLocation');
+        }
+
+        this.endingGeocoder = new MapboxGeocoder({
+            accessToken: token,
+            mapboxgl: mapboxgl,
+            reverseGeocode: true,
+            placeholder: "Enter Ending Address or Set Point on the Map"
+        });
+        if(this.form.querySelector('.mapboxgl-ctrl-geocoder .endingLocation') == null){
+            var endingGeocoderElement = this.endingGeocoder.onAdd(map);
+            this.form.insertBefore(endingGeocoderElement, this.form.querySelector('.mb-3'));
+            endingGeocoderElement.classList.add('endingLocation');
+            endingGeocoderElement.querySelector('.mapboxgl-ctrl-geocoder--input').classList.add('endingLocation');
         }
     }
 
@@ -74,18 +94,19 @@ export class RandomRoute{
 
     saveMarker(event){
         if (event.target.classList.contains('startingPoint')) {
-            const allForms = document.querySelectorAll('form');
             this.markerMap.set(this.curStartMarkerBuff["marker"], {"coordinates": this.curStartMarkerBuff["coordinates"], "placeName": this.curStartMarkerBuff["placeName"]});
-            allForms.forEach(form => {
-                const startingLocationInputs = form.querySelectorAll('.startingLocation');
-                startingLocationInputs.forEach(input => input.value = `${this.markerMap.get(this.curStartMarkerBuff["marker"])["placeName"]}`);
+            const startingLocationInputs = this.form.querySelectorAll('.startingLocation');
+            startingLocationInputs.forEach(input => {
+                input.value = `${this.markerMap.get(this.curStartMarkerBuff["marker"])["placeName"]}`
             });
             this.curStartMarkerBuff["marker"].togglePopup();
         }
         else if (event.target.classList.contains('endingPoint')) {
-            const randRouteForm = document.getElementById('randRouteForm');
             this.markerMap.set(this.curEndMarkerBuff["marker"], {"coordinates": this.curEndMarkerBuff["coordinates"], "placeName": this.curEndMarkerBuff["placeName"]});
-            randRouteForm.endingLocation.value = `${this.markerMap.get(this.curEndMarkerBuff["marker"])["placeName"]}`
+            const endingLocationInputs = this.form.querySelectorAll('.endingLocation');
+            endingLocationInputs.forEach(input => {
+                input.value = `${this.markerMap.get(this.curEndMarkerBuff["marker"])["placeName"]}`
+            });
             this.curEndMarkerBuff["marker"].togglePopup();
         }
     }
@@ -100,7 +121,7 @@ export class RandomRoute{
         }
         else {
             const randRouteForm = document.getElementById('randRouteForm');
-            randRouteForm.endingLocation.value = `${data.features[0].place_name}`
+            randRouteForm.querySelector('.mapboxgl-ctrl-geocoder endingLocation').value = `${data.features[0].place_name}`
         }
     }
 
