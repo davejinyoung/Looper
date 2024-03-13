@@ -19,7 +19,7 @@ export class RandomLoop{
         return [this.curStartMarker]
     }
 
-    get allGeocoders(){
+    get initialGeocoders(){
         return [this.startingGeocoder]
     }
 
@@ -28,6 +28,7 @@ export class RandomLoop{
             accessToken: token,
             mapboxgl: mapboxgl,
             reverseGeocode: true,
+            marker: false,
             placeholder: "Enter Starting Address or Set Point on the Map"
         });
         if(this.form.querySelector('.mapboxgl-ctrl-geocoder') == null){
