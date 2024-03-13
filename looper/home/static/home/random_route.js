@@ -23,7 +23,7 @@ export class RandomRoute{
         return Array.from(this.markerMap.keys());
     }
 
-    get allGeocoders(){
+    get initialGeocoders(){
         return [this.startingGeocoder, this.endingGeocoder]
     }
 
@@ -32,6 +32,7 @@ export class RandomRoute{
             accessToken: token,
             mapboxgl: mapboxgl,
             reverseGeocode: true,
+            marker: false,
             placeholder: "Enter Starting Address or Set Point on the Map"
         });
         if(this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation') == null){
@@ -44,6 +45,7 @@ export class RandomRoute{
             accessToken: token,
             mapboxgl: mapboxgl,
             reverseGeocode: true,
+            marker: false,
             placeholder: "Enter Ending Address or Set Point on the Map"
         });
         if(this.form.querySelector('.mapboxgl-ctrl-geocoder .endingLocation') == null){
@@ -121,7 +123,7 @@ export class RandomRoute{
         }
         else {
             const randRouteForm = document.getElementById('randRouteForm');
-            randRouteForm.querySelector('.mapboxgl-ctrl-geocoder endingLocation').value = `${data.features[0].place_name}`
+            randRouteForm.querySelector('.mapboxgl-ctrl-geocoder .endingLocation').value = `${data.features[0].place_name}`;
         }
     }
 

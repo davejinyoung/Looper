@@ -43,7 +43,7 @@ document.getElementById('customRouteButton').addEventListener('click', function(
 
 function initializeGeocoders(){
     routeType.createSearchBox(map, mapboxgl.accessToken);
-    routeType.allGeocoders.forEach(geocoder => {
+    routeType.initialGeocoders.forEach(geocoder => {
         geocoder.on('result', (event) => {
             const coordinates = event.result.geometry.coordinates;
             setMarker(coordinates);
@@ -78,11 +78,6 @@ curLocationButtons.forEach(button => {
     button.addEventListener('click', function(event){
         geolocateControl.trigger();
     });
-});
-
-geolocateControl.on('geolocate', (event) => {
-    const coordinates = [event.coords.longitude, event.coords.latitude];
-    setMarker(coordinates);
 });
 
 // Script for location of clicked area on map
