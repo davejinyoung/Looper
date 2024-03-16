@@ -15,40 +15,47 @@ const map = new mapboxgl.Map({
 let routeType;
 
 // Script for selecting the type of route you want to create
-document.getElementById('randLoopButton').addEventListener('click', function(event) {
+document.getElementById('randLoopButton').addEventListener('click', function() {
     if(!(routeType instanceof RandomLoop)){
         clearForm();
         routeType = new RandomLoop();
         showForm(routeType.form);
-        initializeGeocoders();
     }
 });
-document.getElementById('randRouteButton').addEventListener('click', function(event) {
+document.getElementById('randRouteButton').addEventListener('click', function() {
     if(!(routeType instanceof RandomRoute)){
-
         clearForm();
         routeType = new RandomRoute();
         showForm(routeType.form);
+        showForm(routeType.form);
+        initializeGeocoders();
+        showForm(routeType.form); 
         initializeGeocoders();
     }
 });
-document.getElementById('customRouteButton').addEventListener('click', function(event) {
+document.getElementById('customRouteButton').addEventListener('click', function() {
     if(!(routeType instanceof CustomRoute)){
         clearForm();
         routeType = new CustomRoute();
         showForm(routeType.form);
+    }
+});
+
+document.body.addEventListener('click', function(event) {
+    if (routeType instanceof CustomRoute){
         initializeGeocoders();
     }
 });
 
 function initializeGeocoders(){
-    routeType.createSearchBox(map, mapboxgl.accessToken);
-    routeType.initialGeocoders.forEach(geocoder => {
+    routeType.createSearchBox(map, mapboxgl.accessToken);  
+    routeType.allGeocoders.forEach(geocoder => {
         geocoder.on('result', (event) => {
             const coordinates = event.result.geometry.coordinates;
             setMarker(coordinates);
+            routeType.curGeocoder = geocoder;
         });
-    });  
+    });
 }
 
 function showForm(selectedForm) {
@@ -61,6 +68,7 @@ function showForm(selectedForm) {
         selectedForm.classList.remove('d-none');
     }
     document.getElementById("universalFormItems").classList.remove('d-none');
+    initializeGeocoders();
 }
 
 // Script for finding current location
@@ -68,8 +76,9 @@ const geolocateControl = new mapboxgl.GeolocateControl({
     positionOptions: {
         enableHighAccuracy: true
     },
-    trackUserLocation: true,
-    showUserHeading: true
+    showUserHeading: true,
+    showUserLocation: false, // Hide user location marker
+    showAccuracyCircle: false // Hide accuracy circle
 });
 map.addControl(geolocateControl);
 
@@ -79,6 +88,14 @@ curLocationButtons.forEach(button => {
         geolocateControl.trigger();
     });
 });
+
+// Script for finding current location
+geolocateControl.on('geolocate', (event) => {
+    const coordinates = [event.coords.longitude, event.coords.latitude];
+    if (routeType){
+        setMarker(coordinates);
+    }
+})
 
 // Script for location of clicked area on map
 map.on('click', (event) => {
@@ -97,8 +114,8 @@ function setMarker(coordinates, marker) {
             if(marker == null){
                 routeType.setMarkerWithCorrectType(coordinates, data, map);
             }
-            else{
-                routeType.updateLocationForm(coordinates, marker, data);
+            else {
+                routeType.updateLocationForm(marker, data);
             }
         }
     };
@@ -106,36 +123,25 @@ function setMarker(coordinates, marker) {
 }
 
 document.body.addEventListener('click', function(event) {
-    if (routeType){
+    if (routeType && (event.target.classList.contains('popupButton'))){
         routeType.saveMarker(event, map);
     }
 });
 
 // TODO: clean this up
-document.getElementById("submit-rand-loop").addEventListener('click', function(event) {
-    calculateOptimizedRoute();
-    enableDraggableMarkers();
-});
-document.getElementById("submit-rand-route").addEventListener('click', function(event) {
-    calculateOptimizedRoute();
-    enableDraggableMarkers();
-});
-document.getElementById("submit-cust-route").addEventListener('click', function(event) {
-    calculateOptimizedRoute();
-    enableDraggableMarkers();
+const generateButtonIds = ["submit-rand-loop", "submit-rand-route", "submit-cust-route"] 
+generateButtonIds.forEach(buttonId => {
+    document.getElementById(`${buttonId}`).addEventListener('click', function(event) {
+        calculateOptimizedRoute();
+        enableDraggableMarkers();
+    });
 });
 
 
-function calculateOptimizedRoute() {
+function calculateOptimizedRoute(generateButtonClicked=true) {
     let exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
-    let startAndEnd = routeType.getStartAndEnd();
     const waypointLiteral = getWaypointLiteral();
     const queryURL = `https://api.mapbox.com/directions/v5/mapbox/${exerciseType}/${waypointLiteral}?&alternatives=true&annotations=distance&continue_straight=false&geometries=geojson&overview=full&steps=true&access_token=${mapboxgl.accessToken}`;
-
-    if (map.getSource('route') != null && map.getLayer('route') != null) {
-        map.removeLayer('route');
-        map.removeSource('route');
-    }
 
     fetch(queryURL)
         .then(response => {
@@ -150,22 +156,25 @@ function calculateOptimizedRoute() {
                 return acc.concat(route.geometry.coordinates);
             }, []);
 
-            if(!routeType.isGenerated){
+            if(generateButtonClicked){
                 const bounds = allCoordinates.reduce((bounds, coord) => {
                     return bounds.extend(coord);
                 }, new mapboxgl.LngLatBounds(allCoordinates[0], allCoordinates[0]));
                 map.fitBounds(bounds, {
-                    padding: 50, // Adjust as needed
-                    linear: true // Smooth animation
+                    padding: 40,
+                    linear: true
                 });
             }
 
-
-            console.log(data.routes);
             const route = data.routes[0];
             const routeCoordinates = route.geometry.coordinates;
             routeDetails(route);
             routeType.isGenerated = true;
+
+            if(map.getSource('route') != null && map.getLayer('route') != null){
+                map.removeLayer('route')
+                map.removeSource('route');
+            }
 
             map.addSource('route', { type: 'geojson', data: {
                 type: 'Feature',
@@ -200,7 +209,7 @@ function enableDraggableMarkers(){
             let markerDetails = routeType.markerMap.get(marker);
             markerDetails["coordinates"] = coordinates;
             routeType.markerMap.set(marker, markerDetails);
-            calculateOptimizedRoute();
+            calculateOptimizedRoute(false);
             setMarker(coordinates, marker);
         })
     })
@@ -224,7 +233,6 @@ clearButtons.forEach(button => {
 });
 
 function routeDetails(route){
-    console.log(route);
     const distance = route.distance / 1000.00;
     const distanceElem = document.createTextNode(`${distance.toFixed(2)} km`);
     const routeDetails = document.getElementById('route-distance');

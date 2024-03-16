@@ -7,11 +7,11 @@ export class CustomRoute{
         this.isGenerated = false; // determines if route has been generated or not
         this.startingGeocoder;
         this.additionalGeocoders = [];
-
+        this.curGeocoder;
+        this.countAdditionalLocations = 0;
 
         this.token;
         this.map;
-        this.countAdditionalLocations = 0;
     }
 
     get isCurrentForm(){
@@ -25,15 +25,15 @@ export class CustomRoute{
         return Array.from(this.markerMap.keys());
     }
 
-    get initialGeocoders(){
-        return [this.startingGeocoder];
+    get allGeocoders(){
+        return this.additionalGeocoders;
     }
 
     createSearchBox(map, token){
         this.token = token;
         this.map = map;
 
-
+        let geocoderSection = this.form.querySelector(".geocoders");
         this.startingGeocoder = new MapboxGeocoder({
             accessToken: token,
             mapboxgl: mapboxgl,
@@ -41,26 +41,30 @@ export class CustomRoute{
             marker: false,
             placeholder: "Enter Starting Address or Set Point on the Map"
         });
-        if(this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation') == null){
-            this.form.insertBefore(this.startingGeocoder.onAdd(map), this.form.querySelector('.mb-3'));
-            this.form.querySelector('.mapboxgl-ctrl-geocoder').classList.add('startingLocation');
-            this.form.querySelector('.mapboxgl-ctrl-geocoder--input').classList.add('startingLocation');
+        this.additionalGeocoders.push(this.startingGeocoder);
+        if(geocoderSection.querySelector('.mapboxgl-ctrl-geocoder .startingLocation') == null){
+            geocoderSection.appendChild(this.startingGeocoder.onAdd(map));
+            geocoderSection.querySelector('.mapboxgl-ctrl-geocoder').classList.add('startingLocation', 'mb-3');
+            geocoderSection.querySelector('.mapboxgl-ctrl-geocoder--input').classList.add('startingLocation');
         }
     }
 
     createAdditionalSearchBoxes(){
-        this.additionalGeocoders.push(new MapboxGeocoder({
+        let additionalGeocoder = new MapboxGeocoder({
             accessToken: this.token,
             mapboxgl: mapboxgl,
             reverseGeocode: true,
             marker: false,
             placeholder: "Enter Additional Address or Set Point on the Map"
-        }));
+        });
+        this.additionalGeocoders.push(additionalGeocoder);
         this.countAdditionalLocations++;
+
         if(this.form.querySelector('.mapboxgl-ctrl-geocoder .additionalLocation') == null){
-            var additionalGeocoderElement = this.additionalGeocoders[0].onAdd(this.map);
-            this.form.insertBefore(additionalGeocoderElement, this.form.querySelector('.mb-3'));
-            additionalGeocoderElement.classList.add(`additionalLocation${this.countAdditionalLocations}`);
+            let geocoderSection = this.form.querySelector(".geocoders");
+            var additionalGeocoderElement = additionalGeocoder.onAdd(this.map);
+            geocoderSection.appendChild(additionalGeocoderElement);
+            additionalGeocoderElement.classList.add(`additionalLocation${this.countAdditionalLocations}`, 'additionalLocation', 'mb-3');
             additionalGeocoderElement.querySelector('.mapboxgl-ctrl-geocoder--input').classList.add(`additionalLocation${this.countAdditionalLocations}`);
         }
     }
@@ -81,7 +85,7 @@ export class CustomRoute{
             this.curStartMarkerBuff["marker"] = new mapboxgl.Marker()
                 .setLngLat(coordinates)
                 .setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>
-                    <button type="button" class="startingPoint">Set Starting Point</button>`))
+                    <button type="button" class="popupButton startingPoint">Set Starting Point</button>`))
                 .addTo(map);
             this.curStartMarkerBuff["marker"].togglePopup();
             this.curStartMarkerBuff["coordinates"] = coordinates;
@@ -95,7 +99,7 @@ export class CustomRoute{
             this.curAdditionalMarkerBuff["marker"] = new mapboxgl.Marker()
                 .setLngLat(coordinates)
                 .setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>
-                    <button type="button" class="additionalPoint">Set Additional Point</button>`))
+                    <button type="button" class="popupButton additionalPoint">Set Additional Point</button>`))
                 .addTo(map);
             this.curAdditionalMarkerBuff["marker"].togglePopup();
             this.curAdditionalMarkerBuff["coordinates"] = coordinates;
@@ -113,7 +117,6 @@ export class CustomRoute{
             this.curStartMarkerBuff["marker"].togglePopup();
         }
         else if (event.target.classList.contains('additionalPoint')) {
-            this.createAdditionalSearchBoxes();
             const marker = new mapboxgl.Marker()
                 .setLngLat(this.curAdditionalMarkerBuff["coordinates"])
                 .addTo(map);
@@ -125,9 +128,10 @@ export class CustomRoute{
                 input.value = `${this.curAdditionalMarkerBuff["placeName"]}`;
             });
         }
+        this.createAdditionalSearchBoxes();
     }
 
-    updateLocationForm(coordinates, marker, data){
+    updateLocationForm(marker, data){
         if(this.markerMap.get(marker) == this.markerMap.get(this.curStartMarkerBuff["marker"])){
             const allForms = document.querySelectorAll('form');
             allForms.forEach(form => {
@@ -162,6 +166,7 @@ export class CustomRoute{
     }
 
     clearForm(){
+        this.removeAdditionalGeocoders();
         this.form.reset();
         if(this.curStartMarkerBuff["marker"]){
             this.curStartMarkerBuff["marker"].remove();
@@ -176,5 +181,14 @@ export class CustomRoute{
         }
         this.markerMap.clear();
         this.isGenerated = false;
+    }
+
+    removeAdditionalGeocoders(){
+        let allAdditionalGeocoderElements = this.form.querySelectorAll('.additionalLocation');
+        allAdditionalGeocoderElements.forEach(element => {
+            element.remove();
+        });
+        this.additionalGeocoders = [];
+        this.countAdditionalLocations = 0;
     }
 }

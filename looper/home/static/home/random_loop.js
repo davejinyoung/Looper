@@ -6,6 +6,7 @@ export class RandomLoop{
         this.form = document.getElementById('randLoopForm'); // form element of random loop
         this.isGenerated = false; // determines if route has been generated or not
         this.startingGeocoder;
+        this.curGeocoder;
     }
 
     get isCurrentForm(){
@@ -19,11 +20,12 @@ export class RandomLoop{
         return [this.curStartMarker]
     }
 
-    get initialGeocoders(){
+    get allGeocoders(){
         return [this.startingGeocoder]
     }
 
     createSearchBox(map, token){
+        let geocoderSection = this.form.querySelector(".geocoders");
         this.startingGeocoder = new MapboxGeocoder({
             accessToken: token,
             mapboxgl: mapboxgl,
@@ -31,9 +33,10 @@ export class RandomLoop{
             marker: false,
             placeholder: "Enter Starting Address or Set Point on the Map"
         });
-        if(this.form.querySelector('.mapboxgl-ctrl-geocoder') == null){
-            this.form.insertBefore(this.startingGeocoder.onAdd(map), this.form.querySelector('.mb-3'));
-            this.form.querySelector('.mapboxgl-ctrl-geocoder--input').classList.add('startingLocation');
+        if(geocoderSection.querySelector('.mapboxgl-ctrl-geocoder') == null){
+            geocoderSection.appendChild(this.startingGeocoder.onAdd(map));
+            geocoderSection.querySelector('.mapboxgl-ctrl-geocoder').classList.add('startingLocation', 'mb-3');
+            geocoderSection.querySelector('.mapboxgl-ctrl-geocoder--input').classList.add('startingLocation');
         }
     }
 
@@ -47,7 +50,7 @@ export class RandomLoop{
         const marker = new mapboxgl.Marker()
             .setLngLat(coordinates)
             .setPopup(new mapboxgl.Popup().setHTML(`<p>${this.startingLocation.get("placeName")}</p>
-                <button type="button" class="startingPoint">Set Starting Point</button>`))
+                <button type="button" class="popupButton startingPoint">Set Starting Point</button>`))
             .addTo(map);
         marker.togglePopup();
         this.curStartMarker = marker;
