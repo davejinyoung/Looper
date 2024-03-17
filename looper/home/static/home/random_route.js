@@ -1,6 +1,3 @@
-import { CustomRoute} from "./custom_route.js";
-
-
 export class RandomRoute{
     constructor(){
         this.markerMap = new Map();
@@ -28,7 +25,7 @@ export class RandomRoute{
         return [this.startingGeocoder, this.endingGeocoder]
     }
 
-    createSearchBox(map, token){
+    createInitialGeocoders(map, token){
         let geocoderSection = this.form.querySelector(".geocoders");
         this.startingGeocoder = new MapboxGeocoder({
             accessToken: token,
@@ -147,6 +144,7 @@ export class RandomRoute{
     }
 
     getAllWaypoints(){
+        console.log(this.markerMap);
         return [this.markerMap.get(this.curStartMarkerBuff["marker"])["coordinates"], this.markerMap.get(this.curEndMarkerBuff["marker"])["coordinates"]];
     }
 

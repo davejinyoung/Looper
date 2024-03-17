@@ -27,10 +27,6 @@ document.getElementById('randRouteButton').addEventListener('click', function() 
         clearForm();
         routeType = new RandomRoute();
         showForm(routeType.form);
-        showForm(routeType.form);
-        initializeGeocoders();
-        showForm(routeType.form); 
-        initializeGeocoders();
     }
 });
 document.getElementById('customRouteButton').addEventListener('click', function() {
@@ -41,14 +37,23 @@ document.getElementById('customRouteButton').addEventListener('click', function(
     }
 });
 
+// CustomRoute needs to constantly be checking for new geocoders because they're created dynamically. 
 document.body.addEventListener('click', function(event) {
     if (routeType instanceof CustomRoute){
-        initializeGeocoders();
+        if (routeType.uninitializedGeocoder["geocoder"] != null && routeType.uninitializedGeocoder["initialized"] == false){
+            let geocoder = routeType.uninitializedGeocoder["geocoder"];
+            geocoder.on('result', (event) => {
+                const coordinates = event.result.geometry.coordinates;
+                setMarker(coordinates);
+                routeType.curGeocoder = geocoder;
+            });
+            routeType.uninitializedGeocoder["initialized"] = true;
+        }
     }
 });
 
 function initializeGeocoders(){
-    routeType.createSearchBox(map, mapboxgl.accessToken);  
+    routeType.createInitialGeocoders(map, mapboxgl.accessToken);  
     routeType.allGeocoders.forEach(geocoder => {
         geocoder.on('result', (event) => {
             const coordinates = event.result.geometry.coordinates;

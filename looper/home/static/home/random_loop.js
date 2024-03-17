@@ -24,7 +24,7 @@ export class RandomLoop{
         return [this.startingGeocoder]
     }
 
-    createSearchBox(map, token){
+    createInitialGeocoders(map, token){
         let geocoderSection = this.form.querySelector(".geocoders");
         this.startingGeocoder = new MapboxGeocoder({
             accessToken: token,

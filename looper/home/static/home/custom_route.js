@@ -1,14 +1,17 @@
 export class CustomRoute{
     constructor(){
-        this.markerMap = new Map();
+        this.markerMap = new Map(); // key is the marker, value is a dictionary containing the coordinates and placeName of the marker
+        // To think about: Could make a marker class and have the coordinates, placeName, and geocoder as members of the class and keep a list 
+        // of marker objects in this class. Lots of refactoring to be done though and may break the logic of some methods.  
         this.curStartMarkerBuff = {}; // current start marker "candidate"
         this.curAdditionalMarkerBuff = {}; // current additional marker "candidate"
         this.form = document.getElementById('customRouteForm'); // form element of custom route
         this.isGenerated = false; // determines if route has been generated or not
         this.startingGeocoder;
-        this.additionalGeocoders = [];
+        this.additionalGeocoders = []; // might want to change this name to allGeocoders since it includes the starting Geocoder
         this.curGeocoder;
         this.countAdditionalLocations = 0;
+        this.uninitializedGeocoder = {"geocoder" : null, "initialized" : false}; 
 
         this.token;
         this.map;
@@ -29,7 +32,7 @@ export class CustomRoute{
         return this.additionalGeocoders;
     }
 
-    createSearchBox(map, token){
+    createInitialGeocoders(map, token){
         this.token = token;
         this.map = map;
 
@@ -49,7 +52,7 @@ export class CustomRoute{
         }
     }
 
-    createAdditionalSearchBoxes(){
+    createAdditionalGeocoder(){
         let additionalGeocoder = new MapboxGeocoder({
             accessToken: this.token,
             mapboxgl: mapboxgl,
@@ -59,21 +62,37 @@ export class CustomRoute{
         });
         this.additionalGeocoders.push(additionalGeocoder);
         this.countAdditionalLocations++;
+        
+        let geocoderSection = this.form.querySelector(".geocoders");
+        var additionalGeocoderElement = additionalGeocoder.onAdd(this.map);
+        geocoderSection.appendChild(additionalGeocoderElement);
+        additionalGeocoderElement.classList.add(`additionalLocation${this.countAdditionalLocations}`, 'additionalLocation', 'mb-3');
+        additionalGeocoderElement.querySelector('.mapboxgl-ctrl-geocoder--input').classList.add(`additionalLocation${this.countAdditionalLocations}`);
 
-        if(this.form.querySelector('.mapboxgl-ctrl-geocoder .additionalLocation') == null){
-            let geocoderSection = this.form.querySelector(".geocoders");
-            var additionalGeocoderElement = additionalGeocoder.onAdd(this.map);
-            geocoderSection.appendChild(additionalGeocoderElement);
-            additionalGeocoderElement.classList.add(`additionalLocation${this.countAdditionalLocations}`, 'additionalLocation', 'mb-3');
-            additionalGeocoderElement.querySelector('.mapboxgl-ctrl-geocoder--input').classList.add(`additionalLocation${this.countAdditionalLocations}`);
-        }
+        this.uninitializedGeocoder["geocoder"] = additionalGeocoder;
+        this.uninitializedGeocoder["initialized"] = false;
     }
 
     #isStartingMarker(){
-        if (document.getElementById('startingLocation3').value != ''){
+        console.log(this.curGeocoder);
+
+        if(this.curGeocoder == this.startingGeocoder){
+            return true;
+        }
+        // else if(this.curGeocoder == this.endingGeocoder){
+        //     return false;
+        // }
+        else if(document.getElementById('startingLocation3').value == ''){
+            return true;
+        }
+        else {
             return false;
         }
-        return true;
+
+        // if (document.getElementById('startingLocation3').value != '' ){
+        //     return false;
+        // }
+        // return true;
     }
 
     setMarkerWithCorrectType(coordinates, data, map){
@@ -128,23 +147,37 @@ export class CustomRoute{
                 input.value = `${this.curAdditionalMarkerBuff["placeName"]}`;
             });
         }
-        this.createAdditionalSearchBoxes();
+        this.curGeocoder = null;
+        this.createAdditionalGeocoder();
     }
 
     updateLocationForm(marker, data){
-        if(this.markerMap.get(marker) == this.markerMap.get(this.curStartMarkerBuff["marker"])){
-            const allForms = document.querySelectorAll('form');
-            allForms.forEach(form => {
-                const startingLocationInputs = form.querySelectorAll('.startingLocation');
-                startingLocationInputs.forEach(input => input.value = `${data.features[0].place_name}`);
-            });
-        }
-        else {
-            const randRouteForm = document.getElementById('custRouteForm');
-            // TODO: create forms for additional locations
-//            randRouteForm.endingLocation.value = `${data.features[0].place_name}`
-        }
+        let locationInput = this.getGeocoderBasedOnMarkerOrder(marker);
+        locationInput.forEach(input => {
+            input.value = `${data.features[0].place_name}`;
+        });
     }
+
+    getGeocoderBasedOnMarkerOrder(marker){
+        let markerList = Array.from(this.markerMap.keys());
+        let markerOrder = markerList.indexOf(marker);
+        if(markerOrder == 0){
+            return this.form.querySelectorAll(`.startingLocation`);
+        }
+        return this.form.querySelectorAll(`.additionalLocation${markerOrder}`);
+    }
+
+    getMarkerBasedOnGeocoderOrder(marker){
+        let markerList = Array.from(this.markerMap.keys());
+        let markerOrder = markerList.indexOf(marker);
+        if(markerOrder == 0){
+            return this.form.querySelectorAll(`.startingLocation`);
+        }
+        return this.form.querySelectorAll(`.additionalLocation${markerOrder}`);
+    }
+
+    // Change marker map to list to iterate by index. Makes more sense in terms of ordering the markers and the geocoders
+    // each index will have a dictionary/map, where there will be the marker, coordinate, and placeName
 
     getStartAndEnd(){
         let markerList = Array.from(this.markerMap.keys());
@@ -159,7 +192,8 @@ export class CustomRoute{
 
     getAllWaypoints(){
         let waypointsList = [];
-        this.markerMap.forEach(function(value) {
+        this.markerMap.forEach(value => {
+            console.log(value);
             waypointsList.push(value["coordinates"]);
         })
         return waypointsList;
