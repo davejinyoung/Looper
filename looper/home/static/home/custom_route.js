@@ -172,7 +172,7 @@ export class CustomRoute{
                     .setLngLat(this.curAdditionalMarkerBuff["coordinates"])
                     .setPopup(new mapboxgl.Popup().setHTML(`<p>${this.curAdditionalMarkerBuff["placeName"]}</p>`))
                     .addTo(map);
-            if(this.isGenerated && this.curGeocoder != this.startingGeocoder) {
+            if(this.isGenerated && this.additionalGeocoders[this.additionalGeocoders.length - 1] != this.curGeocoder) {
                 let curAdditionalMarkerDict = this.getMarkerDictBasedOnGeocoderOrder(this.curGeocoder);
                 if(curAdditionalMarkerDict != null){
                     this.curAdditionalMarkerBuff["marker"].remove();
