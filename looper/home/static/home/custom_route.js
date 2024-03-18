@@ -1,8 +1,12 @@
 export class CustomRoute{
     constructor(){
-        this.markerMap = new Map(); // key is the marker, value is a dictionary containing the coordinates and placeName of the marker
+        // depreciate 
+        //this.markerMap = new Map(); // key is the marker, value is a dictionary containing the coordinates and placeName of the marker
         // To think about: Could make a marker class and have the coordinates, placeName, and geocoder as members of the class and keep a list 
         // of marker objects in this class. Lots of refactoring to be done though and may break the logic of some methods.  
+
+        this.markerList = []; // Replacement of markerMap 
+        
         this.curStartMarkerBuff = {}; // current start marker "candidate"
         this.curAdditionalMarkerBuff = {}; // current additional marker "candidate"
         this.form = document.getElementById('customRouteForm'); // form element of custom route
@@ -25,7 +29,18 @@ export class CustomRoute{
     }
 
     get allMarkers(){
-        return Array.from(this.markerMap.keys());
+        // depreciate
+        // return Array.from(this.markerMap.keys());
+        return this.retrieveMarkers()
+    }
+
+    retrieveMarkers(){
+        let markers = [];
+        this.markerList.forEach(markerElement => {
+            markers.push(markerElement['marker']);
+        });
+        console.log(markers);
+        return markers;
     }
 
     get allGeocoders(){
@@ -79,20 +94,15 @@ export class CustomRoute{
         if(this.curGeocoder == this.startingGeocoder){
             return true;
         }
-        // else if(this.curGeocoder == this.endingGeocoder){
-        //     return false;
-        // }
+        else if(this.curGeocoder != this.startingGeocoder && this.curGeocoder != null){
+            return false;
+        }
         else if(document.getElementById('startingLocation3').value == ''){
             return true;
         }
-        else {
+        else{
             return false;
         }
-
-        // if (document.getElementById('startingLocation3').value != '' ){
-        //     return false;
-        // }
-        // return true;
     }
 
     setMarkerWithCorrectType(coordinates, data, map){
@@ -126,64 +136,123 @@ export class CustomRoute{
         }
     }
 
+    // TODO: clean this up
     saveMarker(event, map){
         if (event.target.classList.contains('startingPoint')) {
-            this.markerMap.set(this.curStartMarkerBuff["marker"], {"coordinates": this.curStartMarkerBuff["coordinates"], "placeName": this.curStartMarkerBuff["placeName"]});
+            const marker = new mapboxgl.Marker()
+                .setLngLat(this.curStartMarkerBuff["coordinates"])
+                .setPopup(new mapboxgl.Popup().setHTML(`<p>${this.curStartMarkerBuff["placeName"]}</p>`))
+                .addTo(map);
+            // depreciate
+            // this.markerMap.set(this.curStartMarkerBuff["marker"], {"coordinates": this.curStartMarkerBuff["coordinates"], "placeName": this.curStartMarkerBuff["placeName"]});
+            if(this.isGenerated) {
+                if(this.curGeocoder == this.startingGeocoder){
+                    this.curStartMarkerBuff["marker"].remove();
+                    this.markerList[0]['marker'].remove();
+                    this.markerList[0]['marker'] = marker;
+                    this.markerList[0]['coordinates'] = this.curStartMarkerBuff["coordinates"];
+                    this.markerList[0]['placeName'] = this.curStartMarkerBuff["placeName"];
+                }
+            }
+            else {
+                let markerValues = {'marker': marker, 'coordinates' : this.curStartMarkerBuff["coordinates"], placeName: this.curStartMarkerBuff["placeName"]};
+                this.markerList.push(markerValues);
+
+                this.curStartMarkerBuff["marker"].remove();
+                this.createAdditionalGeocoder();
+            }
             const startingLocationInputs = this.form.querySelectorAll('.startingLocation');
             startingLocationInputs.forEach(input => {
-                input.value = `${this.markerMap.get(this.curStartMarkerBuff["marker"])["placeName"]}`;
+                input.value = `${this.curStartMarkerBuff["placeName"]}`
             });
             this.curStartMarkerBuff["marker"].togglePopup();
         }
         else if (event.target.classList.contains('additionalPoint')) {
             const marker = new mapboxgl.Marker()
-                .setLngLat(this.curAdditionalMarkerBuff["coordinates"])
-                .addTo(map);
-            this.markerMap.set(marker, {"coordinates": this.curAdditionalMarkerBuff["coordinates"], "placeName": this.curAdditionalMarkerBuff["placeName"]});
-            this.curAdditionalMarkerBuff["marker"].remove();
+                    .setLngLat(this.curAdditionalMarkerBuff["coordinates"])
+                    .setPopup(new mapboxgl.Popup().setHTML(`<p>${this.curAdditionalMarkerBuff["placeName"]}</p>`))
+                    .addTo(map);
+            if(this.isGenerated && this.curGeocoder != this.startingGeocoder) {
+                let curAdditionalMarkerDict = this.getMarkerDictBasedOnGeocoderOrder(this.curGeocoder);
+                if(curAdditionalMarkerDict != null){
+                    this.curAdditionalMarkerBuff["marker"].remove();
+                    curAdditionalMarkerDict['marker'].remove();
+                    curAdditionalMarkerDict['marker'] = marker;
+                    curAdditionalMarkerDict['coordinates'] = this.curAdditionalMarkerBuff["coordinates"];
+                    curAdditionalMarkerDict['placeName'] = this.curAdditionalMarkerBuff["placeName"];
 
-            const additionalLocationInputs = this.form.querySelectorAll(`.additionalLocation${this.countAdditionalLocations}`);
-            additionalLocationInputs.forEach(input => {
-                input.value = `${this.curAdditionalMarkerBuff["placeName"]}`;
-            });
+                    const additionalLocationInput = this.form.querySelectorAll(`.additionalLocation${this.additionalGeocoders.indexOf(this.curGeocoder)}`);
+                    additionalLocationInput.forEach(input => {
+                        input.value = `${this.curAdditionalMarkerBuff["placeName"]}`;
+                    });
+                }
+            }
+            else {
+                // depreciate
+                // this.markerMap.set(marker, {"coordinates": this.curAdditionalMarkerBuff["coordinates"], "placeName": this.curAdditionalMarkerBuff["placeName"]});
+                let markerValues = {'marker': marker, 'coordinates' : this.curAdditionalMarkerBuff["coordinates"], placeName: this.curAdditionalMarkerBuff["placeName"]};
+                this.markerList.push(markerValues);
+
+                this.curAdditionalMarkerBuff["marker"].remove();
+                const additionalLocationInput = this.form.querySelectorAll(`.additionalLocation${this.countAdditionalLocations}`);
+                additionalLocationInput.forEach(input => {
+                    input.value = `${this.curAdditionalMarkerBuff["placeName"]}`;
+                });
+                this.createAdditionalGeocoder();
+            }            
         }
         this.curGeocoder = null;
-        this.createAdditionalGeocoder();
     }
 
     updateLocationForm(marker, data){
         let locationInput = this.getGeocoderBasedOnMarkerOrder(marker);
+        marker.setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>`))
         locationInput.forEach(input => {
             input.value = `${data.features[0].place_name}`;
         });
     }
 
     getGeocoderBasedOnMarkerOrder(marker){
-        let markerList = Array.from(this.markerMap.keys());
-        let markerOrder = markerList.indexOf(marker);
+        // depreciate
+        // let markerList = Array.from(this.markerMap.keys());
+
+        let markers = this.retrieveMarkers(); 
+        let markerOrder = markers.indexOf(marker);
+
+        if(markerOrder < 0){
+            return null;
+        }
         if(markerOrder == 0){
             return this.form.querySelectorAll(`.startingLocation`);
         }
-        return this.form.querySelectorAll(`.additionalLocation${markerOrder}`);
+        if(markerOrder > 0){
+            return this.form.querySelectorAll(`.additionalLocation${markerOrder}`);
+        }
     }
 
-    getMarkerBasedOnGeocoderOrder(marker){
-        let markerList = Array.from(this.markerMap.keys());
-        let markerOrder = markerList.indexOf(marker);
-        if(markerOrder == 0){
-            return this.form.querySelectorAll(`.startingLocation`);
+    getMarkerDictBasedOnGeocoderOrder(geocoder){
+        // depreciate
+        // let markerList = Array.from(this.markerMap.keys());
+
+        // TODO: work on logic ( it's currently the same as getGeocoderBasedOnMarkerOrder() )
+
+        let geocoderOrder = this.additionalGeocoders.indexOf(geocoder);
+
+        if(geocoderOrder < 0){
+            return null;
         }
-        return this.form.querySelectorAll(`.additionalLocation${markerOrder}`);
+        return this.markerList[geocoderOrder];
     }
 
     // Change marker map to list to iterate by index. Makes more sense in terms of ordering the markers and the geocoders
     // each index will have a dictionary/map, where there will be the marker, coordinate, and placeName
 
     getStartAndEnd(){
-        let markerList = Array.from(this.markerMap.keys());
-        let endMarker = markerList[markerList.length - 1];
-        let start = this.markerMap.get(this.curStartMarkerBuff["marker"])["coordinates"];
-        let end = this.markerMap.get(endMarker)["coordinates"];
+        // depreciate 
+        // let markerList = Array.from(this.markerMap.keys());
+        let markers = this.retrieveMarkers();
+        let start = this.markerList[0]['coordinates'];
+        let end = this.markerList[this.markerList.length - 1]['coordinates'];
         return new Map([
             ['start', start],
             ['end', end]
@@ -192,10 +261,15 @@ export class CustomRoute{
 
     getAllWaypoints(){
         let waypointsList = [];
-        this.markerMap.forEach(value => {
-            console.log(value);
-            waypointsList.push(value["coordinates"]);
-        })
+        // depreciate
+        // this.markerMap.forEach(value => {
+        //     console.log(value);
+        //     waypointsList.push(value["coordinates"]);
+        // })
+        this.markerList.forEach(value => {
+            waypointsList.push(value['coordinates']);
+        });
+        console.log(waypointsList);
         return waypointsList;
     }
 
@@ -210,10 +284,10 @@ export class CustomRoute{
             this.curAdditionalMarkerBuff["marker"].remove();
             this.curAdditionalMarkerBuff = {};
         }
-        for(let marker of this.markerMap.keys()){
-            marker.remove();
+        for(let markerDict of this.markerList){
+            markerDict['marker'].remove();
         }
-        this.markerMap.clear();
+        this.markerList = [];
         this.isGenerated = false;
     }
 

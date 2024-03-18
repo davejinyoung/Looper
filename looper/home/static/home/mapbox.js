@@ -207,15 +207,20 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
 }
 
 function enableDraggableMarkers(){
-    routeType.allMarkers.forEach(marker => {
-        marker.setDraggable(true);
-        marker.on('dragend', () => {
-            const coordinates = [marker.getLngLat().lng, marker.getLngLat().lat];
-            let markerDetails = routeType.markerMap.get(marker);
-            markerDetails["coordinates"] = coordinates;
-            routeType.markerMap.set(marker, markerDetails);
+    routeType.markerList.forEach(markerDict => {
+        let marker = markerDict['marker'];
+        console.log("here " + markerDict['marker']);
+        markerDict['marker'].setDraggable(true);
+        markerDict['marker'].on('dragend', () => {
+            const coordinates = [markerDict['marker'].getLngLat().lng, markerDict['marker'].getLngLat().lat];
+            // depreciate
+            // let markerDetails = routeType.markerMap.get(marker);
+            // markerDetails["coordinates"] = coordinates;
+            // routeType.markerMap.set(marker, markerDetails);
+            markerDict['coordinates'] = coordinates;
+
             calculateOptimizedRoute(false);
-            setMarker(coordinates, marker);
+            setMarker(coordinates, markerDict['marker']);
         })
     })
 }
