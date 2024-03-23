@@ -1,10 +1,7 @@
+import { getPlaceName } from './mapbox.js';
+
 export class CustomRoute{
     constructor(){
-        // depreciate 
-        //this.markerMap = new Map(); // key is the marker, value is a dictionary containing the coordinates and placeName of the marker
-        // To think about: Could make a marker class and have the coordinates, placeName, and geocoder as members of the class and keep a list 
-        // of marker objects in this class. Lots of refactoring to be done though and may break the logic of some methods.  
-
         this.markerList = []; // Replacement of markerMap 
         
         this.curStartMarkerBuff = {}; // current start marker "candidate"
@@ -29,8 +26,6 @@ export class CustomRoute{
     }
 
     get allMarkers(){
-        // depreciate
-        // return Array.from(this.markerMap.keys());
         return this.retrieveMarkers()
     }
 
@@ -39,7 +34,6 @@ export class CustomRoute{
         this.markerList.forEach(markerElement => {
             markers.push(markerElement['marker']);
         });
-        console.log(markers);
         return markers;
     }
 
@@ -89,8 +83,6 @@ export class CustomRoute{
     }
 
     #isStartingMarker(){
-        console.log(this.curGeocoder);
-
         if(this.curGeocoder == this.startingGeocoder){
             return true;
         }
@@ -105,7 +97,7 @@ export class CustomRoute{
         }
     }
 
-    setMarkerWithCorrectType(coordinates, data, map){
+    setMarkerWithCorrectType(coordinates, placeName, map){
         if (this.#isStartingMarker() == true) {
             if(this.curStartMarkerBuff["marker"] != null){
                 this.curStartMarkerBuff["marker"].remove();
@@ -113,12 +105,12 @@ export class CustomRoute{
             }
             this.curStartMarkerBuff["marker"] = new mapboxgl.Marker()
                 .setLngLat(coordinates)
-                .setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>
+                .setPopup(new mapboxgl.Popup().setHTML(`<p>${placeName}</p>
                     <button type="button" class="popupButton startingPoint">Set Starting Point</button>`))
                 .addTo(map);
             this.curStartMarkerBuff["marker"].togglePopup();
             this.curStartMarkerBuff["coordinates"] = coordinates;
-            this.curStartMarkerBuff["placeName"] = data.features[0].place_name;
+            this.curStartMarkerBuff["placeName"] = placeName;
         }
         else {
             if(this.curAdditionalMarkerBuff["marker"] != null){
@@ -127,12 +119,12 @@ export class CustomRoute{
             }
             this.curAdditionalMarkerBuff["marker"] = new mapboxgl.Marker()
                 .setLngLat(coordinates)
-                .setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>
+                .setPopup(new mapboxgl.Popup().setHTML(`<p>${placeName}</p>
                     <button type="button" class="popupButton additionalPoint">Set Additional Point</button>`))
                 .addTo(map);
             this.curAdditionalMarkerBuff["marker"].togglePopup();
             this.curAdditionalMarkerBuff["coordinates"] = coordinates;
-            this.curAdditionalMarkerBuff["placeName"] = data.features[0].place_name;
+            this.curAdditionalMarkerBuff["placeName"] = placeName;
         }
     }
 
@@ -143,8 +135,7 @@ export class CustomRoute{
                 .setLngLat(this.curStartMarkerBuff["coordinates"])
                 .setPopup(new mapboxgl.Popup().setHTML(`<p>${this.curStartMarkerBuff["placeName"]}</p>`))
                 .addTo(map);
-            // depreciate
-            // this.markerMap.set(this.curStartMarkerBuff["marker"], {"coordinates": this.curStartMarkerBuff["coordinates"], "placeName": this.curStartMarkerBuff["placeName"]});
+            
             if(this.isGenerated) {
                 if(this.curGeocoder == this.startingGeocoder){
                     this.curStartMarkerBuff["marker"].remove();
@@ -158,6 +149,8 @@ export class CustomRoute{
                 let markerValues = {'marker': marker, 'coordinates' : this.curStartMarkerBuff["coordinates"], placeName: this.curStartMarkerBuff["placeName"]};
                 this.markerList.push(markerValues);
 
+                this.setDraggable(marker, this.markerList[0]);
+
                 this.curStartMarkerBuff["marker"].remove();
                 this.createAdditionalGeocoder();
             }
@@ -169,12 +162,13 @@ export class CustomRoute{
         }
         else if (event.target.classList.contains('additionalPoint')) {
             const marker = new mapboxgl.Marker()
-                    .setLngLat(this.curAdditionalMarkerBuff["coordinates"])
-                    .setPopup(new mapboxgl.Popup().setHTML(`<p>${this.curAdditionalMarkerBuff["placeName"]}</p>`))
-                    .addTo(map);
+                .setLngLat(this.curAdditionalMarkerBuff["coordinates"])
+                .setPopup(new mapboxgl.Popup().setHTML(`<p>${this.curAdditionalMarkerBuff["placeName"]}</p>`))
+                .addTo(map);
+
             if(this.isGenerated && this.additionalGeocoders[this.additionalGeocoders.length - 1] != this.curGeocoder) {
                 let curAdditionalMarkerDict = this.getMarkerDictBasedOnGeocoderOrder(this.curGeocoder);
-                if(curAdditionalMarkerDict != null){
+                if(curAdditionalMarkerDict != null) {
                     this.curAdditionalMarkerBuff["marker"].remove();
                     curAdditionalMarkerDict['marker'].remove();
                     curAdditionalMarkerDict['marker'] = marker;
@@ -188,10 +182,10 @@ export class CustomRoute{
                 }
             }
             else {
-                // depreciate
-                // this.markerMap.set(marker, {"coordinates": this.curAdditionalMarkerBuff["coordinates"], "placeName": this.curAdditionalMarkerBuff["placeName"]});
                 let markerValues = {'marker': marker, 'coordinates' : this.curAdditionalMarkerBuff["coordinates"], placeName: this.curAdditionalMarkerBuff["placeName"]};
                 this.markerList.push(markerValues);
+
+                this.setDraggable(marker, this.markerList[this.markerList.length - 1]);
 
                 this.curAdditionalMarkerBuff["marker"].remove();
                 const additionalLocationInput = this.form.querySelectorAll(`.additionalLocation${this.countAdditionalLocations}`);
@@ -204,19 +198,35 @@ export class CustomRoute{
         this.curGeocoder = null;
     }
 
-    updateLocationForm(marker, data){
+    setDraggable(marker, markerDict){
+        marker.setDraggable(true);
+        marker.on('dragend', () => {
+            const coordinates = [marker.getLngLat().lng, marker.getLngLat().lat];
+            let placeName = "";
+            getPlaceName(coordinates)
+                .then(updatedPlaceName => {
+                    placeName = updatedPlaceName; // Update the global variable
+                    markerDict['marker'] = marker;
+                    markerDict['coordinates'] = coordinates;
+                    markerDict['placeName'] = placeName;
+                    this.updateLocationForm(marker, placeName);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    }
+
+    updateLocationForm(marker, placeName){
         let locationInput = this.getGeocoderBasedOnMarkerOrder(marker);
-        marker.setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>`))
+        marker.setPopup(new mapboxgl.Popup().setHTML(`<p>${placeName}</p>`))
         locationInput.forEach(input => {
-            input.value = `${data.features[0].place_name}`;
+            input.value = `${placeName}`;
         });
     }
 
     getGeocoderBasedOnMarkerOrder(marker){
-        // depreciate
-        // let markerList = Array.from(this.markerMap.keys());
-
-        let markers = this.retrieveMarkers(); 
+        let markers = this.retrieveMarkers();
         let markerOrder = markers.indexOf(marker);
 
         if(markerOrder < 0){
@@ -231,9 +241,6 @@ export class CustomRoute{
     }
 
     getMarkerDictBasedOnGeocoderOrder(geocoder){
-        // depreciate
-        // let markerList = Array.from(this.markerMap.keys());
-
         // TODO: work on logic ( it's currently the same as getGeocoderBasedOnMarkerOrder() )
 
         let geocoderOrder = this.additionalGeocoders.indexOf(geocoder);
@@ -248,8 +255,6 @@ export class CustomRoute{
     // each index will have a dictionary/map, where there will be the marker, coordinate, and placeName
 
     getStartAndEnd(){
-        // depreciate 
-        // let markerList = Array.from(this.markerMap.keys());
         let markers = this.retrieveMarkers();
         let start = this.markerList[0]['coordinates'];
         let end = this.markerList[this.markerList.length - 1]['coordinates'];
@@ -261,15 +266,9 @@ export class CustomRoute{
 
     getAllWaypoints(){
         let waypointsList = [];
-        // depreciate
-        // this.markerMap.forEach(value => {
-        //     console.log(value);
-        //     waypointsList.push(value["coordinates"]);
-        // })
         this.markerList.forEach(value => {
             waypointsList.push(value['coordinates']);
         });
-        console.log(waypointsList);
         return waypointsList;
     }
 

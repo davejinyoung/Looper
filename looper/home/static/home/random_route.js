@@ -1,3 +1,5 @@
+import { getPlaceName } from './mapbox.js';
+
 export class RandomRoute{
     constructor(){
         this.markerList = [];
@@ -18,8 +20,6 @@ export class RandomRoute{
     }
 
     get allMarkers(){
-        // depreciate
-        // return Array.from(this.markerMap.keys());
         return this.retrieveMarkers()
     }
 
@@ -28,7 +28,6 @@ export class RandomRoute{
         this.markerList.forEach(markerElement => {
             markers.push(markerElement['marker']);
         });
-        console.log(markers);
         return markers;
     }
 
@@ -67,7 +66,6 @@ export class RandomRoute{
     }
 
     #isStartingMarker(){
-        console.log(this.curGeocoder);
         if(this.curGeocoder == this.startingGeocoder){
             return true;
         }
@@ -82,7 +80,7 @@ export class RandomRoute{
         }
     }
 
-    setMarkerWithCorrectType(coordinates, data, map){
+    setMarkerWithCorrectType(coordinates, placeName, map){
         if (this.#isStartingMarker() == true) {
             if(this.curStartMarkerBuff["marker"] != null){
                 this.curStartMarkerBuff["marker"].remove();
@@ -90,12 +88,12 @@ export class RandomRoute{
             }
             this.curStartMarkerBuff["marker"] = new mapboxgl.Marker()
                 .setLngLat(coordinates)
-                .setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>
+                .setPopup(new mapboxgl.Popup().setHTML(`<p>${placeName}</p>
                     <button type="button" class="popupButton startingPoint">Set Starting Point</button>`))
                 .addTo(map);
             this.curStartMarkerBuff["marker"].togglePopup();
             this.curStartMarkerBuff["coordinates"] = coordinates;
-            this.curStartMarkerBuff["placeName"] = data.features[0].place_name;
+            this.curStartMarkerBuff["placeName"] = placeName;
         }
         else {
             if(this.curEndMarkerBuff["marker"] != null){
@@ -104,20 +102,17 @@ export class RandomRoute{
             }
             this.curEndMarkerBuff["marker"] = new mapboxgl.Marker()
                 .setLngLat(coordinates)
-                .setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>
+                .setPopup(new mapboxgl.Popup().setHTML(`<p>${placeName}</p>
                     <button type="button" class="popupButton endingPoint">Set Ending Point</button>`))
                 .addTo(map);
             this.curEndMarkerBuff["marker"].togglePopup();
             this.curEndMarkerBuff["coordinates"] = coordinates;
-            this.curEndMarkerBuff["placeName"] = data.features[0].place_name;
+            this.curEndMarkerBuff["placeName"] = placeName;
         }
     }
 
     saveMarker(event, map){
         if (event.target.classList.contains('startingPoint')) {
-            // depreciate
-            // this.markerMap.set(this.curStartMarkerBuff["marker"], {"coordinates": this.curStartMarkerBuff["coordinates"], "placeName": this.curStartMarkerBuff["placeName"]});
-            
             const marker = new mapboxgl.Marker()
                 .setLngLat(this.curStartMarkerBuff["coordinates"])
                 .setPopup(new mapboxgl.Popup().setHTML(`<p>${this.curStartMarkerBuff["placeName"]}</p>`))
@@ -133,9 +128,13 @@ export class RandomRoute{
                 }
             }
             else {
+                if(this.markerList.length > 0){
+                    this.markerList[0]['marker'].remove();
+                }
                 this.curStartMarkerBuff["marker"].remove();
                 let markerValues = {'marker': marker, 'coordinates' : this.curStartMarkerBuff["coordinates"], placeName: this.curStartMarkerBuff["placeName"]};
-                this.markerList.push(markerValues);
+                this.markerList[0] = markerValues;
+                this.setDraggable(marker, this.markerList[0]);
             }
             const startingLocationInputs = this.form.querySelectorAll('.startingLocation');
             startingLocationInputs.forEach(input => {
@@ -144,11 +143,11 @@ export class RandomRoute{
             this.curStartMarkerBuff["marker"].togglePopup();
         }
         else if (event.target.classList.contains('endingPoint')) {
-            // this.markerMap.set(this.curEndMarkerBuff["marker"], {"coordinates": this.curEndMarkerBuff["coordinates"], "placeName": this.curEndMarkerBuff["placeName"]});
             const marker = new mapboxgl.Marker()
                 .setLngLat(this.curEndMarkerBuff["coordinates"])
                 .setPopup(new mapboxgl.Popup().setHTML(`<p>${this.curEndMarkerBuff["placeName"]}</p>`))
                 .addTo(map);
+
             if(this.isGenerated) {
                 if(this.curGeocoder == this.endingGeocoder){
                     this.curEndMarkerBuff["marker"].remove();
@@ -159,9 +158,13 @@ export class RandomRoute{
                 }
             }
             else {
+                if(this.markerList.length == 2){
+                    this.markerList[1]['marker'].remove();
+                }
                 this.curEndMarkerBuff["marker"].remove();
                 let markerValues = {'marker' : marker, 'coordinates' : this.curEndMarkerBuff["coordinates"], placeName: this.curEndMarkerBuff["placeName"]};
-                this.markerList.push(markerValues);
+                this.markerList[1] = markerValues;
+                this.setDraggable(marker, this.markerList[1]);
             }
             const endingLocationInputs = this.form.querySelectorAll('.endingLocation');
             endingLocationInputs.forEach(input => {
@@ -172,18 +175,38 @@ export class RandomRoute{
         this.curGeocoder = null;
     }
 
-    updateLocationForm(marker, data){
-        marker.setPopup(new mapboxgl.Popup().setHTML(`<p>${data.features[0].place_name}</p>`))
+
+    setDraggable(marker, markerDict){
+        marker.setDraggable(true);
+        marker.on('dragend', () => {
+            const coordinates = [marker.getLngLat().lng, marker.getLngLat().lat];
+            let placeName = "";
+            getPlaceName(coordinates)
+                .then(updatedPlaceName => {
+                    placeName = updatedPlaceName; // Update the global variable
+                    markerDict['marker'] = marker;
+                    markerDict['coordinates'] = coordinates;
+                    markerDict['placeName'] = placeName;
+                    this.updateLocationForm(marker, placeName);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    }
+
+    updateLocationForm(marker, placeName){
+        marker.setPopup(new mapboxgl.Popup().setHTML(`<p>${placeName}</p>`))
         if(marker == this.markerList[0]['marker']){
             const allForms = document.querySelectorAll('form');
             allForms.forEach(form => {
                 const startingLocationInputs = form.querySelectorAll('.startingLocation');
-                startingLocationInputs.forEach(input => input.value = `${data.features[0].place_name}`);
+                startingLocationInputs.forEach(input => input.value = `${placeName}`);
             });
         }
         else {
             const randRouteForm = document.getElementById('randRouteForm');
-            randRouteForm.querySelector('.mapboxgl-ctrl-geocoder .endingLocation').value = `${data.features[0].place_name}`;
+            randRouteForm.querySelector('.mapboxgl-ctrl-geocoder .endingLocation').value = `${placeName}`;
         }
     }
 
@@ -206,8 +229,6 @@ export class RandomRoute{
     }
 
     getAllWaypoints(){
-        // console.log(this.markerMap);
-        console.log(this.markerList);
         return [this.markerList[0]['coordinates'], this.markerList[1]['coordinates']];
     }
 

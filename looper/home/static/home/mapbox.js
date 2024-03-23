@@ -37,7 +37,7 @@ document.getElementById('customRouteButton').addEventListener('click', function(
     }
 });
 
-// CustomRoute needs to constantly be checking for new geocoders because they're created dynamically. 
+// CustomRoute needs to constantly be checking for new geocoders because they're created dynamically. TODO: Is not ideal and could be cleaned up
 document.body.addEventListener('click', function(event) {
     if (routeType instanceof CustomRoute){
         if (routeType.uninitializedGeocoder["geocoder"] != null && routeType.uninitializedGeocoder["initialized"] == false){
@@ -111,21 +111,39 @@ map.on('click', (event) => {
 });
 
 function setMarker(coordinates, marker) {
-    var request = new XMLHttpRequest();
-    request.open('GET', `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?access_token=${mapboxgl.accessToken}`);
-    request.onload = function() {
-        if (this.status >= 200 && this.status < 400) {
-            var data = JSON.parse(this.response);
+    getPlaceName(coordinates)
+        .then(placeName => {
             if(marker == null){
-                routeType.setMarkerWithCorrectType(coordinates, data, map);
+                routeType.setMarkerWithCorrectType(coordinates, placeName, map);
             }
             else {
-                routeType.updateLocationForm(marker, data);
+                routeType.updateLocationForm(marker, placeName);
             }
-        }
-    };
-    request.send();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
 }
+
+export function getPlaceName(coordinates) {
+    return new Promise((resolve, reject) => {
+        var request = new XMLHttpRequest();
+        request.open('GET', `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?access_token=${mapboxgl.accessToken}`);
+        request.onload = function() {
+            if (this.status >= 200 && this.status < 400) {
+                var data = JSON.parse(this.response);
+                resolve(data.features[0].place_name);
+            } else {
+                reject(new Error('Request failed'));
+            }
+        };
+        request.onerror = function() {
+            reject(new Error('Request failed'));
+        };
+        request.send();
+    });
+}
+
 
 document.body.addEventListener('click', function(event) {
     if (routeType && (event.target.classList.contains('popupButton'))){
@@ -208,17 +226,10 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
 
 function enableDraggableMarkers(){
     routeType.markerList.forEach(markerDict => {
-        let marker = markerDict['marker'];
-        console.log("here " + markerDict['marker']);
         markerDict['marker'].setDraggable(true);
         markerDict['marker'].on('dragend', () => {
             const coordinates = [markerDict['marker'].getLngLat().lng, markerDict['marker'].getLngLat().lat];
-            // depreciate
-            // let markerDetails = routeType.markerMap.get(marker);
-            // markerDetails["coordinates"] = coordinates;
-            // routeType.markerMap.set(marker, markerDetails);
             markerDict['coordinates'] = coordinates;
-
             calculateOptimizedRoute(false);
             setMarker(coordinates, markerDict['marker']);
         })
