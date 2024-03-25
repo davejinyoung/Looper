@@ -55,6 +55,18 @@ export class CustomRoute {
         initializeGeocoders([additionalGeocoder]);
     }
 
+    // TODO: Band-aid fix for now, need to refactor this. Don't want to loop through all the geocoders
+    stackCurrentGeocoderTop(){
+        let startingGeocoderSection = this.form.querySelector(`.mapboxgl-ctrl-geocoder .startingLocation`).parentElement;
+        startingGeocoderSection.style.zIndex = '';
+        for(let i = 1; i <= this.countAdditionalLocations; i++){
+            let additionalGeocoderSection = this.form.querySelector(`.mapboxgl-ctrl-geocoder .additionalLocation${i}`).parentElement;
+            additionalGeocoderSection.style.zIndex = '';
+        }
+        let newGeocoderSection = document.activeElement.parentElement;
+        newGeocoderSection.style.zIndex = '10';
+    }
+
     
     #isStartingMarker(){
         if(this.curGeocoder == this.startingGeocoder){

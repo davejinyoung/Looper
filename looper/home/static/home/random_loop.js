@@ -28,6 +28,11 @@ export class RandomLoop{
         setGeocoder(this.startingGeocoder, "startingLocation");
     }
 
+    // TODO: Band-aid fix for now, need to refactor this
+    stackCurrentGeocoderTop(geocoder){
+        return null;
+    }
+
     setMarkerWithCorrectType(coordinates, placeName){
         this.curStartMarkerBuff = initializeMarkerAndPopup(this.curStartMarkerBuff, coordinates, placeName, "starting");
     }

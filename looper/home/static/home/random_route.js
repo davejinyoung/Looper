@@ -45,6 +45,16 @@ export class RandomRoute{
         setGeocoder(this.endingGeocoder, "endingLocation");
     }
 
+    // TODO: Band-aid fix for now, need to refactor this
+    stackCurrentGeocoderTop(){
+        let startingGeocoderSection = this.form.querySelector(`.mapboxgl-ctrl-geocoder .startingLocation`).parentElement;
+        startingGeocoderSection.style.zIndex = '';
+        let endingGeocoderSection = this.form.querySelector(`.mapboxgl-ctrl-geocoder .endingLocation`).parentElement;
+        endingGeocoderSection.style.zIndex = '';
+        let newGeocoderSection = document.activeElement.parentElement;
+        newGeocoderSection.style.zIndex = '10';
+    }
+
 
     #isStartingMarker(){
         if(this.curGeocoder == this.startingGeocoder){

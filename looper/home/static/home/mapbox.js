@@ -318,6 +318,9 @@ export function setGeocoder(geocoder, geocoderLocation){
         geocoderSection.appendChild(geocoderElement);
         geocoderElement.classList.add(`${geocoderLocation}`, 'mb-3');
         geocoderElement.querySelector('.mapboxgl-ctrl-geocoder--input').classList.add(`${geocoderLocation}`);
+        geocoderElement.addEventListener('click', function(){
+            routeType.stackCurrentGeocoderTop(geocoder);
+        });
     }
 }
 
@@ -328,7 +331,6 @@ export function initializeMarkerAndPopup(curMarkerBuff, coordinates, placeName, 
         curMarkerBuff = {};
     }
     curMarkerBuff["marker"] = createMarker(coordinates, placeName, markerType);
-
     curMarkerBuff["marker"].togglePopup();
     curMarkerBuff["coordinates"] = coordinates;
     curMarkerBuff["placeName"] = placeName;
