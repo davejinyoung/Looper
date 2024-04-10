@@ -57,12 +57,15 @@ export class RandomRoute{
 
 
     #isStartingMarker(){
-        if(this.curGeocoder == this.startingGeocoder){
-            return true;
+        if(this.curGeocoder != null) {
+            if(this.curGeocoder.container.classList.contains('startingLocation')){
+                return true;
+            }
+            else if(this.curGeocoder.container.classList.contains('endingLocation')){
+                return false;
+            }
         }
-        else if(this.curGeocoder == this.endingGeocoder){
-            return false;
-        }
+        
         else if(document.getElementById('startingLocation2').value == ''){
             return true;
         }
@@ -90,7 +93,7 @@ export class RandomRoute{
         }
         else if(!this.isGenerated) {
             markerBuffer["marker"].remove();
-            let markerValues = {'marker': marker, 'coordinates' : markerBuffer["coordinates"], placeName: markerBuffer["placeName"]};
+            let markerValues = {'marker': marker, 'coordinates' : markerBuffer["coordinates"], 'placeName': markerBuffer["placeName"]};
             this.markerList[markerIndex] = markerValues;
             setDraggable(marker, this.markerList[markerIndex]);
         }

@@ -117,11 +117,12 @@ generateButtonIds.forEach(buttonId => {
     });
 });
 
-
+// walkway bias is slowing the generation - may want to obsolete this parameter
 function calculateOptimizedRoute(generateButtonClicked=true) {
     let exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
+    let walkwayBias = document.getElementById('runCheck').checked ? 'walkway_bias=0.35' : '';
     const waypointLiteral = getWaypointLiteral();
-    const queryURL = `https://api.mapbox.com/directions/v5/mapbox/${exerciseType}/${waypointLiteral}?&alternatives=true&annotations=distance&continue_straight=false&geometries=geojson&overview=full&steps=true&access_token=${mapboxgl.accessToken}`;
+    const queryURL = `https://api.mapbox.com/directions/v5/mapbox/${exerciseType}/${waypointLiteral}?&alternatives=true&annotations=distance&continue_straight=false&${walkwayBias}&geometries=geojson&overview=full&steps=true&access_token=${mapboxgl.accessToken}`;
 
     fetch(queryURL)
         .then(response => {
@@ -354,10 +355,9 @@ export function createMarker(coordinates, placeName, markerType){
 
 export function replaceMarker(markerDict, markerBuffDict, newMarker){
     markerBuffDict['marker'].remove();
-    markerDict['marker'].remove();
-    markerDict['marker'] = newMarker;
-    markerDict['coordinates'] = markerBuffDict["coordinates"];
-    markerDict['placeName'] = markerBuffDict["placeName"];
-
+    if (markerDict != null){
+        markerDict['marker'].remove();
+    }
+    markerDict = {'marker': newMarker, 'coordinates' : markerBuffDict["coordinates"], 'placeName': markerBuffDict["placeName"]};
     return markerDict;
 }

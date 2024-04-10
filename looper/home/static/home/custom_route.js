@@ -132,7 +132,7 @@ export class CustomRoute {
                 setDraggable(marker, curAdditionalMarkerDict);
                 geocoderOrder = this.additionalGeocoders.indexOf(this.curGeocoder);
             }
-            else if(!this.isGenerated) {
+            else {
                 let markerValues = {'marker': marker, 'coordinates' : this.curAdditionalMarkerBuff["coordinates"], placeName: this.curAdditionalMarkerBuff["placeName"]};
                 this.markerList.push(markerValues);
                 setDraggable(marker, this.markerList[this.markerList.length - 1]);

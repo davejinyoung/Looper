@@ -53,8 +53,97 @@ export class RandomLoop{
         ]);
     }
 
+
+    getDistance() {
+        const distanceElement = document.getElementById('distance');
+        const distanceValue = distanceElement.value;
+        return Number(distanceValue);
+    }
+
+
+    randomIntFromInterval(min, max) {
+        return Math.floor(Math.random() * (max - min + 1) + min)
+    }
+
+
+    randomizeEachLegValues(totalDistanceOrAngle, numRandomWaypoints){
+        let distancesOrAngles = [];
+        let totalProportionalDistanceOrAngle = 0;
+        for(let i = 0; i <= numRandomWaypoints; i++) {
+            let randomProportionalDistanceOrAngle = Math.random();
+            totalProportionalDistanceOrAngle += randomProportionalDistanceOrAngle;
+            distancesOrAngles.push(randomProportionalDistanceOrAngle);
+        }
+        let ratio = totalDistanceOrAngle / totalProportionalDistanceOrAngle;
+        for(let i = 0; i <= numRandomWaypoints; i++) {
+            distancesOrAngles[i] = Math.round(distancesOrAngles[i] * ratio * 100) / 100;
+        }
+        return distancesOrAngles;
+    }
+
+
+    toRadians(degrees) {
+        return degrees * Math.PI / 180;
+    }
+
+    toDegrees(radians) {
+        return radians * 180 / Math.PI;
+    }
+
+    inverseHaversine(startingCoords, distance, bearing) {
+        let lat = this.toRadians(startingCoords[1]);
+        let lng = this.toRadians(startingCoords[0]);
+        let cosD = Math.cos(distance);
+        let sinD = Math.sin(distance);
+        let cosLat = Math.cos(lat);
+        let sinLat = Math.sin(lat);
+        let sinDCosLat = sinD * cosLat;
+        let returnLat = Math.asin(cosD * sinLat + sinDCosLat * Math.cos(bearing));
+        let returnLng = lng + Math.atan2(Math.sin(bearing) * sinDCosLat, cosD - sinLat * Math.sin(returnLat));
+        return { lat: this.toDegrees(returnLat), lon: this.toDegrees(returnLng) };
+    }
+
+
+    getRandomWaypoints(startingCoords){
+        const earthRadius = 6378.137; // in km
+
+        console.log("starting coordinates are: " + startingCoords);
+
+        let distance = this.getDistance();
+        console.log("distance is: " + distance);
+
+        let numRandomWaypoints = this.randomIntFromInterval(2, 5);
+        console.log("number of random waypoints is: " + numRandomWaypoints);
+        
+        let legDistances = this.randomizeEachLegValues(distance, numRandomWaypoints);
+        console.log("leg distances are: " + legDistances);
+
+        let legAngles = this.randomizeEachLegValues(360, numRandomWaypoints);
+        console.log("leg angles are: " + legAngles);
+
+        let inverseHaversine = this.inverseHaversine(startingCoords, legDistances[0]/earthRadius, this.toRadians(legAngles[0]));
+        console.log("inverse haversine is: " + inverseHaversine['lon'] + ", " + inverseHaversine['lat']);
+
+        let waypoints = [];
+        for(let i = 0; i < numRandomWaypoints; i++) {
+            waypoints.push(this.inverseHaversine(startingCoords, legDistances[i]/earthRadius, this.toRadians(legAngles[i])));
+        }
+
+        return waypoints;
+    }
+
+
     getAllWaypoints(){
-        return [this.curStartMarkerBuff['coordinates']];
+        let allWaypoints = [];
+        let startingCoords = this.curStartMarkerBuff['coordinates'];
+        allWaypoints.push(startingCoords);
+        this.getRandomWaypoints(startingCoords).forEach(waypoint => {
+            console.log(waypoint);
+            allWaypoints.push([waypoint['lon'], waypoint['lat']])
+        });
+        allWaypoints.push(startingCoords);
+        console.log(allWaypoints);
+        return allWaypoints;
     }
 
     clearForm(){
