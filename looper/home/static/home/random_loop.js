@@ -4,6 +4,7 @@ export class RandomLoop{
 
     constructor(){
         this.curStartMarkerBuff = {}; // current start marker "candidate"
+        this.markerList = [];
         this.distance; // distance of route
         this.form = document.getElementById('randLoopForm'); // form element of random loop
         this.isGenerated = false; // determines if route has been generated or not
@@ -16,11 +17,21 @@ export class RandomLoop{
     }
 
     get allMarkers(){
-        return [this.curStartMarker]
+        return retrieveMarkers;
     }
 
     get allGeocoders(){
         return [this.startingGeocoder]
+    }
+
+    retrieveMarkers(){
+        let markers = [];
+        if(this.markerList != null){
+            this.markerList.forEach(markerElement => {
+                markers.push(markerElement['marker']);
+            });
+        }
+        return markers;
     }
 
     createInitialGeocoders(){
@@ -112,7 +123,7 @@ export class RandomLoop{
         let distance = this.getDistance();
         console.log("distance is: " + distance);
 
-        let numRandomWaypoints = this.randomIntFromInterval(2, 5);
+        let numRandomWaypoints = this.randomIntFromInterval(2, 2);
         console.log("number of random waypoints is: " + numRandomWaypoints);
         
         let legDistances = this.randomizeEachLegValues(distance, numRandomWaypoints);
@@ -125,11 +136,11 @@ export class RandomLoop{
         console.log("inverse haversine is: " + inverseHaversine['lng'] + ", " + inverseHaversine['lat']);
 
         let waypoints = [];
-        let basePoint = {'coords': startingCoords, 'angle': 0};
+        let basePoint = {'coordinates': startingCoords, 'angle': 0};
         for(let i = 0; i < numRandomWaypoints; i++) {
-            let randWaypoint = this.inverseHaversine(basePoint['coords'], legDistances[i]/earthRadius, this.toRadians(legAngles[i] + basePoint['angle']));
+            let randWaypoint = this.inverseHaversine(basePoint['coordinates'], legDistances[i]/earthRadius, this.toRadians(legAngles[i] + basePoint['angle']));
             waypoints.push(randWaypoint);
-            basePoint['coords'] = [randWaypoint['lng'], randWaypoint['lat']];
+            basePoint['coordinates'] = [randWaypoint['lng'], randWaypoint['lat']];
             basePoint['angle'] = legAngles[i];
         }
 
@@ -138,17 +149,27 @@ export class RandomLoop{
 
 
     getAllWaypoints(){
+        this.clearMarkers();
         let allWaypoints = [];
         let startingCoords = this.curStartMarkerBuff['coordinates'];
+        this.curStartMarkerBuff['marker'] = createMarker(startingCoords);;
         allWaypoints.push(startingCoords);
+        this.markerList.push(this.curStartMarkerBuff);
         this.getRandomWaypoints(startingCoords).forEach(waypoint => {
             console.log(waypoint);
             allWaypoints.push([waypoint['lng'], waypoint['lat']])
-            createMarker([waypoint['lng'], waypoint['lat']]);
+            let marker = createMarker([waypoint['lng'], waypoint['lat']]);
+            this.markerList.push({'marker': marker, 'coordinates' : [waypoint['lng'], waypoint['lat']], 'placeName': ''});
         });
         allWaypoints.push(startingCoords);
         console.log(allWaypoints);
         return allWaypoints;
+    }
+
+    clearMarkers(){
+        for(let marker of this.retrieveMarkers()){
+            marker.remove();
+        }
     }
 
     clearForm(){
@@ -158,6 +179,7 @@ export class RandomLoop{
             this.curStartMarkerBuff = {};
         }
         this.isGenerated = false;
+        this.clearMarkers();
     }
 
     enableDraggableMarkers(){
