@@ -90,9 +90,9 @@ export class RandomLoop{
         return radians * 180 / Math.PI;
     }
 
-    inverseHaversine(startingCoords, distance, bearing) {
-        let lat = this.toRadians(startingCoords[1]);
-        let lng = this.toRadians(startingCoords[0]);
+    inverseHaversine(baseCoords, distance, bearing) {
+        let lat = this.toRadians(baseCoords[1]);
+        let lng = this.toRadians(baseCoords[0]);
         let cosD = Math.cos(distance);
         let sinD = Math.sin(distance);
         let cosLat = Math.cos(lat);
@@ -100,7 +100,7 @@ export class RandomLoop{
         let sinDCosLat = sinD * cosLat;
         let returnLat = Math.asin(cosD * sinLat + sinDCosLat * Math.cos(bearing));
         let returnLng = lng + Math.atan2(Math.sin(bearing) * sinDCosLat, cosD - sinLat * Math.sin(returnLat));
-        return { lat: this.toDegrees(returnLat), lon: this.toDegrees(returnLng) };
+        return { 'lat': this.toDegrees(returnLat), 'lng': this.toDegrees(returnLng) };
     }
 
 
@@ -122,11 +122,15 @@ export class RandomLoop{
         console.log("leg angles are: " + legAngles);
 
         let inverseHaversine = this.inverseHaversine(startingCoords, legDistances[0]/earthRadius, this.toRadians(legAngles[0]));
-        console.log("inverse haversine is: " + inverseHaversine['lon'] + ", " + inverseHaversine['lat']);
+        console.log("inverse haversine is: " + inverseHaversine['lng'] + ", " + inverseHaversine['lat']);
 
         let waypoints = [];
+        let basePoint = {'coords': startingCoords, 'angle': 0};
         for(let i = 0; i < numRandomWaypoints; i++) {
-            waypoints.push(this.inverseHaversine(startingCoords, legDistances[i]/earthRadius, this.toRadians(legAngles[i])));
+            let randWaypoint = this.inverseHaversine(basePoint['coords'], legDistances[i]/earthRadius, this.toRadians(legAngles[i] + basePoint['angle']));
+            waypoints.push(randWaypoint);
+            basePoint['coords'] = [randWaypoint['lng'], randWaypoint['lat']];
+            basePoint['angle'] = legAngles[i];
         }
 
         return waypoints;
@@ -139,7 +143,8 @@ export class RandomLoop{
         allWaypoints.push(startingCoords);
         this.getRandomWaypoints(startingCoords).forEach(waypoint => {
             console.log(waypoint);
-            allWaypoints.push([waypoint['lon'], waypoint['lat']])
+            allWaypoints.push([waypoint['lng'], waypoint['lat']])
+            createMarker([waypoint['lng'], waypoint['lat']]);
         });
         allWaypoints.push(startingCoords);
         console.log(allWaypoints);

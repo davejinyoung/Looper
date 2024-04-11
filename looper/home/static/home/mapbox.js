@@ -340,12 +340,11 @@ export function initializeMarkerAndPopup(curMarkerBuff, coordinates, placeName, 
 
 
 export function createMarker(coordinates, placeName, markerType){
-    let popup = new mapboxgl.Popup().setHTML(`<p>${placeName}</p>`);
+    let popup = placeName != null ? new mapboxgl.Popup().setHTML(`<p>${placeName}</p>`) : new mapboxgl.Popup();
     if(markerType != null){
         popup = new mapboxgl.Popup().setHTML(`<p>${placeName}</p>
             <button type="button" class="popupButton ${markerType}Point">Set ${capitalize(markerType)} Point</button>`);
     }
-
     return new mapboxgl.Marker()
         .setLngLat(coordinates)
         .setPopup(popup)
