@@ -55,6 +55,7 @@ export class RandomLoop{
                 input.value = `${this.curStartMarkerBuff['placeName']}`
             });
             this.curStartMarkerBuff['marker'].togglePopup();
+            this.markerList.unshift(this.curStartMarkerBuff);
         }
     }
 
@@ -123,7 +124,7 @@ export class RandomLoop{
         let distance = this.getDistance();
         console.log("distance is: " + distance);
 
-        let numRandomWaypoints = this.randomIntFromInterval(2, 2);
+        let numRandomWaypoints = this.randomIntFromInterval(3, 6);
         console.log("number of random waypoints is: " + numRandomWaypoints);
         
         let legDistances = this.randomizeEachLegValues(distance, numRandomWaypoints);
@@ -152,9 +153,8 @@ export class RandomLoop{
         this.clearMarkers();
         let allWaypoints = [];
         let startingCoords = this.curStartMarkerBuff['coordinates'];
-        this.curStartMarkerBuff['marker'] = createMarker(startingCoords);;
+        this.curStartMarkerBuff['marker'] = createMarker(startingCoords);
         allWaypoints.push(startingCoords);
-        this.markerList.push(this.curStartMarkerBuff);
         this.getRandomWaypoints(startingCoords).forEach(waypoint => {
             console.log(waypoint);
             allWaypoints.push([waypoint['lng'], waypoint['lat']])
@@ -170,6 +170,7 @@ export class RandomLoop{
         for(let marker of this.retrieveMarkers()){
             marker.remove();
         }
+        this.markerList = [];
     }
 
     clearForm(){
