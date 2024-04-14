@@ -37,6 +37,18 @@ document.getElementById('customRouteButton').addEventListener('click', function(
     }
 });
 
+document.getElementById('streetView').addEventListener('click', function() {
+    if(map.getStyle().name != 'Mapbox Streets'){
+        map.setStyle('mapbox://styles/mapbox/streets-v12');
+    }
+});
+
+document.getElementById('satelliteView').addEventListener('click', function() {
+    if(map.getStyle() != 'Mapbox Satellite Streets'){
+        map.setStyle('mapbox://styles/mapbox/satellite-streets-v12');
+    }
+});
+
 
 function showForm(selectedForm) {
     // Hide all forms
@@ -77,6 +89,17 @@ geolocateControl.on('geolocate', (event) => {
         setMarker(coordinates);
     }
 })
+
+map.on('style.load', () => {
+    map.addSource('mapbox-dem', {
+        'type': 'raster-dem',
+        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        'tileSize': 512,
+        'maxzoom': 14
+    });
+    // add the DEM source as a terrain layer with exaggerated height
+    map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+});
 
 // Script for location of clicked area on map
 map.on('click', (event) => {
