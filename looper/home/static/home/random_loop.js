@@ -5,6 +5,7 @@ export class RandomLoop{
     constructor(){
         this.curStartMarkerBuff = {}; // current start marker "candidate"
         this.markerList = [];
+        this.customRouteObj = null;
         this.distance; // distance of route
         this.form = document.getElementById('randLoopForm'); // form element of random loop
         this.isGenerated = false; // determines if route has been generated or not
@@ -12,17 +13,21 @@ export class RandomLoop{
         this.curGeocoder;
     }
 
+
     get isCurrentForm(){
         return Object.values(this.form.classList).indexOf('d-none') == -1;
     }
+
 
     get allMarkers(){
         return retrieveMarkers;
     }
 
+
     get allGeocoders(){
         return [this.startingGeocoder]
     }
+
 
     retrieveMarkers(){
         let markers = [];
@@ -34,19 +39,23 @@ export class RandomLoop{
         return markers;
     }
 
+
     createInitialGeocoders(){
         this.startingGeocoder = createGeocoder("Starting");
         setGeocoder(this.startingGeocoder, "startingLocation");
     }
+
 
     // TODO: Band-aid fix for now, need to refactor this
     stackCurrentGeocoderTop(geocoder){
         return null;
     }
 
+
     setMarkerWithCorrectType(coordinates, placeName){
         this.curStartMarkerBuff = initializeMarkerAndPopup(this.curStartMarkerBuff, coordinates, placeName, "starting");
     }
+
 
     saveMarker(eventClass){
         if (eventClass.contains('startingPoint')) {
@@ -55,14 +64,27 @@ export class RandomLoop{
                 input.value = `${this.curStartMarkerBuff['placeName']}`
             });
             this.curStartMarkerBuff['marker'].togglePopup();
-            this.markerList.unshift(this.curStartMarkerBuff);
+            this.clearMarkers();
+            this.markerList.push(this.curStartMarkerBuff);
         }
     }
+
 
     getStartAndEnd(){
         return new Map([
             ['start', this.curStartMarkerBuff['coordinates']]
         ]);
+    }
+
+    updateLocationForm(marker, placeName){
+        marker.setPopup(new mapboxgl.Popup().setHTML(`<p>${placeName}</p>`))
+        if(marker == this.markerList[0]['marker']){
+            const allForms = document.querySelectorAll('form');
+            allForms.forEach(form => {
+                const startingLocationInputs = form.querySelectorAll('.startingLocation');
+                startingLocationInputs.forEach(input => input.value = `${placeName}`);
+            });
+        }
     }
 
 
@@ -98,9 +120,11 @@ export class RandomLoop{
         return degrees * Math.PI / 180;
     }
 
+
     toDegrees(radians) {
         return radians * 180 / Math.PI;
     }
+
 
     inverseHaversine(baseCoords, distance, bearing) {
         let lat = this.toRadians(baseCoords[1]);
@@ -121,10 +145,11 @@ export class RandomLoop{
 
         console.log("starting coordinates are: " + startingCoords);
 
-        let distance = this.getDistance();
-        console.log("distance is: " + distance);
+        let distanceAdjustmentRatio = 0.75; // make this into a calculation based on averages and trends
 
-        let numRandomWaypoints = this.randomIntFromInterval(3, 6);
+        let distance = this.getDistance() * distanceAdjustmentRatio;
+
+        let numRandomWaypoints = this.randomIntFromInterval(4, 7);
         console.log("number of random waypoints is: " + numRandomWaypoints);
         
         let legDistances = this.randomizeEachLegValues(distance, numRandomWaypoints);
@@ -134,37 +159,37 @@ export class RandomLoop{
         console.log("leg angles are: " + legAngles);
 
         let inverseHaversine = this.inverseHaversine(startingCoords, legDistances[0]/earthRadius, this.toRadians(legAngles[0]));
-        console.log("inverse haversine is: " + inverseHaversine['lng'] + ", " + inverseHaversine['lat']);
+        console.log("inverse haversine coordinates are: " + inverseHaversine['lng'] + ", " + inverseHaversine['lat']);
 
         let waypoints = [];
         let basePoint = {'coordinates': startingCoords, 'angle': 0};
         for(let i = 0; i < numRandomWaypoints; i++) {
             let randWaypoint = this.inverseHaversine(basePoint['coordinates'], legDistances[i]/earthRadius, this.toRadians(legAngles[i] + basePoint['angle']));
-            waypoints.push(randWaypoint);
-            basePoint['coordinates'] = [randWaypoint['lng'], randWaypoint['lat']];
-            basePoint['angle'] = legAngles[i];
+            let newCoords = [randWaypoint['lng'], randWaypoint['lat']];
+            let markerDict = {'marker': createMarker(newCoords), 'coordinates': newCoords, 'placeName': ''};
+            waypoints.push(markerDict);
+            basePoint['coordinates'] = newCoords;
+            basePoint['angle'] += legAngles[i];
         }
-
         return waypoints;
     }
 
 
-    getAllWaypoints(){
-        this.clearMarkers();
-        let allWaypoints = [];
-        let startingCoords = this.curStartMarkerBuff['coordinates'];
-        this.curStartMarkerBuff['marker'] = createMarker(startingCoords);
-        allWaypoints.push(startingCoords);
-        this.getRandomWaypoints(startingCoords).forEach(waypoint => {
-            console.log(waypoint);
-            allWaypoints.push([waypoint['lng'], waypoint['lat']])
-            let marker = createMarker([waypoint['lng'], waypoint['lat']]);
-            this.markerList.push({'marker': marker, 'coordinates' : [waypoint['lng'], waypoint['lat']], 'placeName': ''});
+    getAllWaypoints(generateButtonClicked){
+        if(generateButtonClicked){
+            this.clearMarkers();
+            this.curStartMarkerBuff['marker'] = createMarker(this.curStartMarkerBuff['coordinates'], this.curStartMarkerBuff['placeName']);
+            this.markerList.push(this.curStartMarkerBuff);
+            this.markerList = this.markerList.concat(this.getRandomWaypoints(this.curStartMarkerBuff['coordinates']));
+        }
+        let waypointsList = [];
+        this.markerList.forEach(value => {
+            waypointsList.push(value['coordinates']);
         });
-        allWaypoints.push(startingCoords);
-        console.log(allWaypoints);
-        return allWaypoints;
+        waypointsList.push(this.curStartMarkerBuff['coordinates']);
+        return waypointsList;
     }
+
 
     clearMarkers(){
         for(let marker of this.retrieveMarkers()){
@@ -172,6 +197,7 @@ export class RandomLoop{
         }
         this.markerList = [];
     }
+
 
     clearForm(){
         this.form.reset();

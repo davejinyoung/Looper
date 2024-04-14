@@ -152,7 +152,7 @@ export class RandomRoute{
     }
 
 
-    getAllWaypoints(){
+    getAllWaypoints(generateButtonClicked){
         return [this.markerList[0]['coordinates'], this.markerList[1]['coordinates']];
     }
 

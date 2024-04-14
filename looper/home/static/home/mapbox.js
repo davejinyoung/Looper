@@ -121,8 +121,9 @@ generateButtonIds.forEach(buttonId => {
 function calculateOptimizedRoute(generateButtonClicked=true) {
     let exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
     let walkwayBias = document.getElementById('runCheck').checked ? 'walkway_bias=0.35' : '';
-    const waypointLiteral = getWaypointLiteral();
-    const queryURL = `https://api.mapbox.com/directions/v5/mapbox/${exerciseType}/${waypointLiteral}?&alternatives=true&annotations=distance&continue_straight=false&${walkwayBias}&geometries=geojson&overview=full&steps=true&access_token=${mapboxgl.accessToken}`;
+    const waypointCoords = getWaypointCoordinates(generateButtonClicked);
+    // const waypointBearings = getWaypointBearings();
+    const queryURL = `https://api.mapbox.com/directions/v5/mapbox/${exerciseType}/${waypointCoords}?&alternatives=true&annotations=distance&continue_straight=false&${walkwayBias}&geometries=geojson&overview=full&steps=true&access_token=${mapboxgl.accessToken}`;
 
     fetch(queryURL)
         .then(response => {
@@ -194,14 +195,14 @@ function enableDraggableMarkers(){
     })
 }
 
-function getWaypointLiteral(){
-    let waypointLiteral = ``;
-    let waypoints = routeType.getAllWaypoints();
+function getWaypointCoordinates(generateButtonClicked){
+    let waypointCoords = ``;
+    let waypoints = routeType.getAllWaypoints(generateButtonClicked);
     waypoints.forEach(coordinate => {
-        waypointLiteral = waypointLiteral.concat(coordinate[0], ",", coordinate[1], ";");
+        waypointCoords = waypointCoords.concat(coordinate[0], ",", coordinate[1], ";");
     });
-    waypointLiteral = waypointLiteral.substring(0, waypointLiteral.length - 1);
-    return waypointLiteral;
+    waypointCoords = waypointCoords.substring(0, waypointCoords.length - 1);
+    return waypointCoords;
 }
 
 const clearButtons = document.querySelectorAll(".clear-btn")
@@ -212,7 +213,7 @@ clearButtons.forEach(button => {
 });
 
 function routeDetails(route){
-    const distance = route.distance / 1000.00;
+    const distance = route.distance / 1000.0;
     const distanceElem = document.createTextNode(`${distance.toFixed(2)} km`);
     const routeDetails = document.getElementById('route-distance');
     routeDetails.innerHTML = "";

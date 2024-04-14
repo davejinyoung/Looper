@@ -193,7 +193,7 @@ export class CustomRoute {
     }
 
 
-    getAllWaypoints(){
+    getAllWaypoints(generateButtonClicked){
         let waypointsList = [];
         this.markerList.forEach(value => {
             waypointsList.push(value['coordinates']);
