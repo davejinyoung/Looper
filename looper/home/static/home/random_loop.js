@@ -89,9 +89,12 @@ export class RandomLoop{
 
 
     getDistance() {
-        const distanceElement = document.getElementById('distance');
-        const distanceValue = distanceElement.value;
-        return Number(distanceValue);
+        return Number(document.getElementById('distance').value);
+    }
+
+    getDistanceMargin() {
+        let distance = this.getDistance();
+        return {'min': distance * 0.85 * 1000, 'max': distance * 1.15 * 1000}; // in meters
     }
 
 
@@ -166,7 +169,7 @@ export class RandomLoop{
         for(let i = 0; i < numRandomWaypoints; i++) {
             let randWaypoint = this.inverseHaversine(basePoint['coordinates'], legDistances[i]/earthRadius, this.toRadians(legAngles[i] + basePoint['angle']));
             let newCoords = [randWaypoint['lng'], randWaypoint['lat']];
-            let markerDict = {'marker': createMarker(newCoords), 'coordinates': newCoords, 'placeName': ''};
+            let markerDict = {'marker': createMarker(newCoords, null, null, false), 'coordinates': newCoords, 'placeName': ''};
             waypoints.push(markerDict);
             basePoint['coordinates'] = newCoords;
             basePoint['angle'] += legAngles[i];

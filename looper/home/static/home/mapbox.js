@@ -136,7 +136,6 @@ const generateButtonIds = ["submit-rand-loop", "submit-rand-route", "submit-cust
 generateButtonIds.forEach(buttonId => {
     document.getElementById(`${buttonId}`).addEventListener('click', function(event) {
         calculateOptimizedRoute();
-        enableDraggableMarkers();
     });
 });
 
@@ -145,10 +144,12 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
     let exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
     let walkwayBias = document.getElementById('runCheck').checked ? 'walkway_bias=0.35' : '';
     const waypointCoords = getWaypointCoordinates(generateButtonClicked);
-    // const waypointBearings = getWaypointBearings();
     const queryURL = `https://api.mapbox.com/directions/v5/mapbox/${exerciseType}/${waypointCoords}?&alternatives=true&annotations=distance&continue_straight=false&${walkwayBias}&geometries=geojson&overview=full&steps=true&access_token=${mapboxgl.accessToken}`;
 
-    fetch(queryURL)
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    fetch(queryURL, { signal })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -156,10 +157,29 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
             return response.json();
         })
         .then(data => {
+            if(map.getSource('route') != null && map.getLayer('route') != null){
+                map.removeLayer('route')
+                map.removeSource('route');
+            }
+
             const routes = data.routes;
             const allCoordinates = routes.reduce((acc, route) => {
                 return acc.concat(route.geometry.coordinates);
             }, []);
+
+            const route = data.routes[0];
+            const routeCoordinates = route.geometry.coordinates;
+
+            if(routeType instanceof RandomLoop){
+                let distanceMargin = routeType.getDistanceMargin();
+                if(route.distance <  distanceMargin['min'] || route.distance > distanceMargin['max']) {
+                    controller.abort();
+                    calculateOptimizedRoute();
+                    return;
+                }
+                addMarkersToMap();
+            }
+            enableDraggableMarkers();
 
             if(generateButtonClicked){
                 const bounds = allCoordinates.reduce((bounds, coord) => {
@@ -171,15 +191,8 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
                 });
             }
 
-            const route = data.routes[0];
-            const routeCoordinates = route.geometry.coordinates;
             routeDetails(route);
             routeType.isGenerated = true;
-
-            if(map.getSource('route') != null && map.getLayer('route') != null){
-                map.removeLayer('route')
-                map.removeSource('route');
-            }
 
             map.addSource('route', { type: 'geojson', data: {
                 type: 'Feature',
@@ -198,12 +211,18 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
                     'line-cap': 'round'
                 },
                 paint: {
-                    'line-color': '#3887be',
-                    'line-width': 5
+                    'line-color': '#174ba6',
+                    'line-width': 6.5
                 }
             });
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            if (error.name === 'AbortError') {
+                console.log('Fetch aborted');
+            } else {
+                console.error('Fetch error:', error);
+            }
+        });
 }
 
 function enableDraggableMarkers(){
@@ -241,6 +260,12 @@ function routeDetails(route){
     const routeDetails = document.getElementById('route-distance');
     routeDetails.innerHTML = "";
     routeDetails.appendChild(distanceElem);
+}
+
+function addMarkersToMap(){
+    routeType.markerList.forEach(markerDict => {
+        markerDict['marker'].addTo(map);
+    });
 }
 
 function clearForm(){
@@ -363,16 +388,20 @@ export function initializeMarkerAndPopup(curMarkerBuff, coordinates, placeName, 
 }
 
 
-export function createMarker(coordinates, placeName, markerType){
+export function createMarker(coordinates, placeName, markerType, addToMap=true){
     let popup = placeName != null ? new mapboxgl.Popup().setHTML(`<p>${placeName}</p>`) : new mapboxgl.Popup();
     if(markerType != null){
         popup = new mapboxgl.Popup().setHTML(`<p>${placeName}</p>
             <button type="button" class="popupButton ${markerType}Point">Set ${capitalize(markerType)} Point</button>`);
     }
-    return new mapboxgl.Marker()
+    let marker = new mapboxgl.Marker()
         .setLngLat(coordinates)
-        .setPopup(popup)
-        .addTo(map);
+        .setPopup(popup);
+
+    if(addToMap){
+        marker.addTo(map);
+    }
+    return marker
 }
 
 
