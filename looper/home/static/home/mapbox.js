@@ -59,7 +59,9 @@ function showForm(selectedForm) {
     if(selectedForm){
         selectedForm.classList.remove('d-none');
     }
-    document.getElementById("universalFormItems").classList.remove('d-none');
+    document.querySelectorAll(".universalFormItems").forEach(form => {
+        form.classList.remove('d-none');
+    });
     routeType.createInitialGeocoders(); 
     initializeGeocoders(routeType.allGeocoders);
 }
@@ -131,16 +133,14 @@ document.body.addEventListener('click', function(event) {
     }
 });
 
-// TODO: clean this up
-const generateButtonIds = ["submit-rand-loop", "submit-rand-route", "submit-cust-route"] 
-generateButtonIds.forEach(buttonId => {
-    document.getElementById(`${buttonId}`).addEventListener('click', function(event) {
-        calculateOptimizedRoute();
-    });
+
+document.getElementById('generateRoute').addEventListener('click', function(event) {
+    calculateOptimizedRoute();
 });
 
 // walkway bias is slowing the generation - may want to obsolete this parameter
 function calculateOptimizedRoute(generateButtonClicked=true) {
+    startLoadingAnimation();
     let exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
     let walkwayBias = document.getElementById('runCheck').checked ? 'walkway_bias=0.35' : '';
     const waypointCoords = getWaypointCoordinates(generateButtonClicked);
@@ -157,10 +157,7 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
             return response.json();
         })
         .then(data => {
-            if(map.getSource('route') != null && map.getLayer('route') != null){
-                map.removeLayer('route')
-                map.removeSource('route');
-            }
+            removeExistingRouteLayer();
 
             const routes = data.routes;
             const allCoordinates = routes.reduce((acc, route) => {
@@ -215,6 +212,7 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
                     'line-width': 6.5
                 }
             });
+            endLoadingAnimation();
         })
         .catch(error => {
             if (error.name === 'AbortError') {
@@ -223,6 +221,27 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
                 console.error('Fetch error:', error);
             }
         });
+}
+
+function removeExistingRouteLayer(){
+    if(map.getSource('route') != null && map.getLayer('route') != null){
+        map.removeLayer('route')
+        map.removeSource('route');
+    }
+}
+
+function startLoadingAnimation(){
+    const loadingAnimation = document.getElementById('loadingAnimation');
+    if(loadingAnimation.classList.contains('d-none')){ 
+        loadingAnimation.classList.remove('d-none');
+    }
+}
+
+function endLoadingAnimation(){
+    const loadingAnimation = document.getElementById('loadingAnimation');
+    if(!loadingAnimation.classList.contains('d-none')){ 
+        loadingAnimation.classList.add('d-none');
+    }
 }
 
 function enableDraggableMarkers(){
