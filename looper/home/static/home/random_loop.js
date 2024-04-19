@@ -29,6 +29,18 @@ export class RandomLoop{
     }
 
 
+    validateFormSubmission(){
+        if(document.getElementById('startingLocation1').value == ''){
+            alert('Please enter a starting location');
+            throw new Error('Please enter a starting location');
+        }
+        if(document.getElementById('distance').value == ''){
+            alert('Please enter a distance');
+            throw new Error('Please enter a distance');
+        }
+    }
+
+
     retrieveMarkers(){
         let markers = [];
         if(this.markerList != null){
@@ -210,9 +222,5 @@ export class RandomLoop{
         }
         this.isGenerated = false;
         this.clearMarkers();
-    }
-
-    enableDraggableMarkers(){
-        this.curStartMarkerBuff['marker'].setDraggable(true);
     }
 }

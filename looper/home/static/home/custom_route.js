@@ -26,6 +26,18 @@ export class CustomRoute {
     }
 
 
+    validateFormSubmission(){
+        if(document.getElementById('startingLocation3').value == ''){
+            alert('Please enter a starting location');
+            throw new Error('Please enter a starting location');
+        }
+        if(this.form.querySelector('.mapboxgl-ctrl-geocoder .additionalLocation1').value == ''){
+            alert('Please enter at least one additional location');
+            throw new Error('Please enter at least one additional location');
+        }
+    }
+
+
     retrieveMarkers(){
         let markers = [];
         this.markerList.forEach(markerElement => {

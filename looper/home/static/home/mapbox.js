@@ -138,8 +138,17 @@ document.getElementById('generateRoute').addEventListener('click', function(even
     calculateOptimizedRoute();
 });
 
+// fix when on geocoder and press enter for suggested values
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        calculateOptimizedRoute();
+    }
+});
+
 // walkway bias is slowing the generation - may want to obsolete this parameter
 function calculateOptimizedRoute(generateButtonClicked=true) {
+    routeType.validateFormSubmission();
     startLoadingAnimation();
     let exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
     let walkwayBias = document.getElementById('runCheck').checked ? 'walkway_bias=0.35' : '';
@@ -158,7 +167,6 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
         })
         .then(data => {
             removeExistingRouteLayer();
-
             const routes = data.routes;
             const allCoordinates = routes.reduce((acc, route) => {
                 return acc.concat(route.geometry.coordinates);
@@ -167,7 +175,7 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
             const route = data.routes[0];
             const routeCoordinates = route.geometry.coordinates;
 
-            if(routeType instanceof RandomLoop){
+            if(routeType instanceof RandomLoop && generateButtonClicked){
                 let distanceMargin = routeType.getDistanceMargin();
                 if(route.distance <  distanceMargin['min'] || route.distance > distanceMargin['max']) {
                     controller.abort();
@@ -242,18 +250,20 @@ function endLoadingAnimation(){
     if(!loadingAnimation.classList.contains('d-none')){ 
         loadingAnimation.classList.add('d-none');
     }
-}
+ }
 
-function enableDraggableMarkers(){
+function enableDraggableMarkers() {
     routeType.markerList.forEach(markerDict => {
-        markerDict['marker'].setDraggable(true);
-        markerDict['marker'].on('dragend', () => {
-            const coordinates = [markerDict['marker'].getLngLat().lng, markerDict['marker'].getLngLat().lat];
-            markerDict['coordinates'] = coordinates;
-            calculateOptimizedRoute(false);
-            setMarker(coordinates, markerDict['marker']);
-        })
-    })
+        if (!markerDict['marker'].dragendListener) {
+            markerDict['marker'].setDraggable(true);
+            markerDict['marker'].on('dragend', () => {
+                const coordinates = [markerDict['marker'].getLngLat().lng, markerDict['marker'].getLngLat().lat];
+                markerDict['coordinates'] = coordinates;
+                calculateOptimizedRoute(false);
+            });
+            markerDict['marker'].dragendListener = true;
+        }
+    });
 }
 
 function getWaypointCoordinates(generateButtonClicked){
