@@ -58,15 +58,15 @@
     <div class="map-container">
       <div class="form-container">
         <div class="form-elements">
-          <div class="btn-group" >
+          <div class="btn-group d-flex justify-content-center mx-3 my-2">
             <input id="randLoopButton" type="radio" name="options" class="btn-check"/>
-            <label class="btn btn-primary" for="randLoopButton">Randomize a Loop</label>
+            <label class="btn btn-primary" for="randLoopButton" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Automatically Create a Randomized Looping Route">Randomize</label>
 
             <input id="randRouteButton" type="radio" name="options" class="btn-check"/>
-            <label class="btn btn-primary" for="randRouteButton">Randomize a Route from A to B</label>
+            <label class="btn btn-primary" for="randRouteButton" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create a Point-A to Point-B Route">A to B</label>
 
             <input id="customRouteButton" type="radio" name="options" class="btn-check"/>
-            <label class="btn btn-primary" for="customRouteButton">Customize Your Own Route</label>
+            <label class="btn btn-primary" for="customRouteButton"data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create a Fully Customizable Route From Scratch">Customize</label>
           </div>
 
           <div class="my-4">
@@ -93,6 +93,16 @@
               <div class="mb-3">
                 <label for="distance" class="form-label">Distance</label>
                 <input type="number" class="form-control" min="0" value="0" step=".1" id="distance">
+              </div>
+              <div class="mb-3">
+                <label for="distanceAccuracy" class="form-label">Route Distance Accuracy</label>
+                <input type="range" class="form-range" min="0.45" max="0.95" step="0.05" id="distanceAccuracy">
+              </div>
+              <div class="btn-group mb-3">
+                <input class="btn-check" type="radio" name="routeRotation" id="clockwise" autocomplete="off" checked/>
+                <label class="btn btn-secondary" for="clockwise">Clockwise</label>
+                <input class="btn-check" type="radio" name="routeRotation" id="antiClockwise" autocomplete="off"/>
+                <label class="btn btn-secondary" for="antiClockwise">Anti-Clockwise</label>
               </div>
             </form>
 
@@ -123,7 +133,8 @@
       </div>
     </div>
 
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script type="module" src="{% static 'home/mapbox.js' %}"></script>
   </body>
 </html>

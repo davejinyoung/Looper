@@ -30,14 +30,16 @@ export class RandomLoop{
 
 
     validateFormSubmission(){
-        if(this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation').value == ''){
-            alert('Please enter a starting location');
-            throw new Error('Please enter a starting location');
+        let startingLocationElem = this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation');
+        if(startingLocationElem.querySelector('.suggestions') != null) return false;
+        if(startingLocationElem.value == ''){
+            alert('Please enter a valid starting location');
+            return false;
         }
-        if(document.getElementById('distance').value == ''){
-            alert('Please enter a distance');
-            throw new Error('Please enter a distance');
+        if(document.getElementById('distance').value <= 0){
+            return false;
         }
+        return true;
     }
 
 
@@ -104,9 +106,14 @@ export class RandomLoop{
         return Number(document.getElementById('distance').value);
     }
 
+    getDistanceAccuracy() {
+        return Number(document.getElementById('distanceAccuracy').value);
+    }
+
     getDistanceMargin() {
         let distance = this.getDistance();
-        return {'min': distance * 0.85 * 1000, 'max': distance * 1.15 * 1000}; // in meters
+        let distanceAccuracy = this.getDistanceAccuracy();
+        return {'min': distance * distanceAccuracy * 1000, 'max': distance * (2-distanceAccuracy) * 1000}; // in meters
     }
 
 
@@ -179,7 +186,11 @@ export class RandomLoop{
         let waypoints = [];
         let basePoint = {'coordinates': startingCoords, 'angle': 0};
         for(let i = 0; i < numRandomWaypoints; i++) {
-            let randWaypoint = this.inverseHaversine(basePoint['coordinates'], legDistances[i]/earthRadius, this.toRadians(legAngles[i] + basePoint['angle']));
+            let angle = legAngles[i] + basePoint['angle'];
+            if(document.getElementById('antiClockwise').checked){
+                angle = 360 - angle;
+            }
+            let randWaypoint = this.inverseHaversine(basePoint['coordinates'], legDistances[i]/earthRadius, this.toRadians(angle));
             let newCoords = [randWaypoint['lng'], randWaypoint['lat']];
             let markerDict = {'marker': createMarker(newCoords, null, null, false), 'coordinates': newCoords, 'placeName': ''};
             waypoints.push(markerDict);

@@ -26,13 +26,14 @@ export class RandomRoute{
 
     validateFormSubmission(){
         if(this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation').value == ''){
-            alert('Please enter a starting location');
-            throw new Error('Please enter a starting location');
+            alert('Please enter a valid starting location');
+            return false;
         }
         if(this.form.querySelector('.mapboxgl-ctrl-geocoder .endingLocation').value == ''){
-            alert('Please enter an ending location');
-            throw new Error('Please enter an ending location');
+            alert('Please enter a valid ending location');
+            return false;
         }
+        return true;
     }
 
 

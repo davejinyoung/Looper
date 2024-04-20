@@ -28,13 +28,14 @@ export class CustomRoute {
 
     validateFormSubmission(){
         if(this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation').value == ''){
-            alert('Please enter a starting location');
-            throw new Error('Please enter a starting location');
+            alert('Please enter a valid starting location');
+            return false;
         }
         if(this.form.querySelector('.mapboxgl-ctrl-geocoder .additionalLocation1').value == ''){
             alert('Please enter at least one additional location');
-            throw new Error('Please enter at least one additional location');
+            return false;
         }
+        return true;
     }
 
 

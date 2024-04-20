@@ -14,6 +14,9 @@ const map = new mapboxgl.Map({
 
 let routeType;
 
+const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
 // Script for selecting the type of route you want to create
 document.getElementById('randLoopButton').addEventListener('click', function() {
     if(!(routeType instanceof RandomLoop)){
@@ -148,7 +151,9 @@ document.addEventListener('keydown', function(event) {
 
 // walkway bias is slowing the generation - may want to obsolete this parameter
 function calculateOptimizedRoute(generateButtonClicked=true) {
-    if(generateButtonClicked) routeType.validateFormSubmission();
+    if(generateButtonClicked){
+        if(!routeType.validateFormSubmission()) return;
+    }
     startLoadingAnimation();
     let exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
     let walkwayBias = document.getElementById('runCheck').checked ? 'walkway_bias=0.35' : '';
@@ -223,6 +228,7 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
             endLoadingAnimation();
         })
         .catch(error => {
+            endLoadingAnimation();
             if (error.name === 'AbortError') {
                 console.log('Fetch aborted');
             } else {
