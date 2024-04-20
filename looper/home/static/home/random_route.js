@@ -25,11 +25,11 @@ export class RandomRoute{
 
 
     validateFormSubmission(){
-        if(document.getElementById('startingLocation2').value == ''){
+        if(this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation').value == ''){
             alert('Please enter a starting location');
             throw new Error('Please enter a starting location');
         }
-        if(document.getElementById('endingLocation').value == ''){
+        if(this.form.querySelector('.mapboxgl-ctrl-geocoder .endingLocation').value == ''){
             alert('Please enter an ending location');
             throw new Error('Please enter an ending location');
         }
@@ -78,7 +78,7 @@ export class RandomRoute{
             }
         }
         
-        else if(document.getElementById('startingLocation2').value == ''){
+        else if(this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation').value == ''){
             return true;
         }
         else {

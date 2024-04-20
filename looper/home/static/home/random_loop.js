@@ -30,7 +30,7 @@ export class RandomLoop{
 
 
     validateFormSubmission(){
-        if(document.getElementById('startingLocation1').value == ''){
+        if(this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation').value == ''){
             alert('Please enter a starting location');
             throw new Error('Please enter a starting location');
         }

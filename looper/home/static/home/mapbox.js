@@ -148,7 +148,7 @@ document.addEventListener('keydown', function(event) {
 
 // walkway bias is slowing the generation - may want to obsolete this parameter
 function calculateOptimizedRoute(generateButtonClicked=true) {
-    routeType.validateFormSubmission();
+    if(generateButtonClicked) routeType.validateFormSubmission();
     startLoadingAnimation();
     let exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
     let walkwayBias = document.getElementById('runCheck').checked ? 'walkway_bias=0.35' : '';

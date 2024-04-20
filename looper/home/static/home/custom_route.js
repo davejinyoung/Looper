@@ -27,7 +27,7 @@ export class CustomRoute {
 
 
     validateFormSubmission(){
-        if(document.getElementById('startingLocation3').value == ''){
+        if(this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation').value == ''){
             alert('Please enter a starting location');
             throw new Error('Please enter a starting location');
         }
@@ -87,7 +87,7 @@ export class CustomRoute {
         else if(this.curGeocoder != this.startingGeocoder && this.curGeocoder != null){
             return false;
         }
-        else if(document.getElementById('startingLocation3').value == ''){
+        else if(this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation').value == ''){
             return true;
         }
         else{
@@ -143,6 +143,7 @@ export class CustomRoute {
                 curAdditionalMarkerDict = replaceMarker(curAdditionalMarkerDict, this.curAdditionalMarkerBuff, marker);
                 setDraggable(marker, curAdditionalMarkerDict);
                 geocoderOrder = this.additionalGeocoders.indexOf(this.curGeocoder);
+                this.markerList[geocoderOrder] = curAdditionalMarkerDict;
             }
             else {
                 let markerValues = {'marker': marker, 'coordinates' : this.curAdditionalMarkerBuff["coordinates"], placeName: this.curAdditionalMarkerBuff["placeName"]};
