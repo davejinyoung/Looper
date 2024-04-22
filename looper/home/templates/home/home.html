@@ -12,6 +12,7 @@
       crossorigin="anonymous"
     />
     <title>{% block title %}Create New Route{% endblock %}</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'home/images/favicon.png' %}"/>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.1/axios.min.js"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'home/maps.css' %}">
@@ -60,62 +61,82 @@
         <div class="form-elements">
           <div class="btn-group d-flex justify-content-center mx-3 my-2">
             <input id="randLoopButton" type="radio" name="options" class="btn-check"/>
-            <label class="btn btn-primary" for="randLoopButton" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Automatically Create a Randomized Looping Route">Randomize</label>
+            <label class="btn btn-primary p-0.2rem" for="randLoopButton" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Automatically Create a Randomized Looping Route">Randomize</label>
 
             <input id="randRouteButton" type="radio" name="options" class="btn-check"/>
-            <label class="btn btn-primary" for="randRouteButton" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create a Point-A to Point-B Route">A to B</label>
+            <label class="btn btn-primary p-0.2rem" for="randRouteButton" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create a Point-A to Point-B Route">A to B</label>
 
             <input id="customRouteButton" type="radio" name="options" class="btn-check"/>
-            <label class="btn btn-primary" for="customRouteButton"data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create a Fully Customizable Route From Scratch">Customize</label>
+            <label class="btn btn-primary p-0.2rem" for="customRouteButton"data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create a Fully Customizable Route From Scratch">Customize</label>
           </div>
 
           <div class="my-4">
-            <div class="universalFormItems mx-3 my-3 d-none">
-              <div class="btn-group my-2">
+            <div class="universalFormItems mx-3 my-3 d-none" style="display: flex; column-gap: 3%;">
+              <div class="btn-group mr-2" style="width: 100%">
                 <input id="streetView" type="radio" name="mapType" class="btn-check" checked/>
-                <label class="btn btn-secondary" for="streetView">Street View</label>
+                <label class="btn btn-secondary btn-left" for="streetView">
+                  <img class="routeTypeImg" src="{% static 'home/images/map_view.png' %}" alt="map view" width="15" height="15">
+                  Map View
+                </label>
                 <input id="satelliteView" type="radio" name="mapType" class="btn-check"/>
-                <label class="btn btn-secondary" for="satelliteView">Satellite View</label>
-              </div><br>
-              <div class="btn-group">
-                <input class="btn-check" type="radio" name="exercise-options" id="runCheck" autocomplete="off" checked/>
-                <label class="btn btn-secondary" for="runCheck">Run / Walk</label>
-                <input class="btn-check" type="radio" name="exercise-options" id="bikeCheck" autocomplete="off"/>
-                <label class="btn btn-secondary" for="bikeCheck">Bike</label>
+                <label class="btn btn-secondary btn-right" for="satelliteView">
+                  <img class="routeTypeImg" src="https://static.thenounproject.com/png/2280827-200.png" width="15" height="15">
+                  Satellite View
+                </label>
               </div>
-              <div class="mt-3">
-                <button type="button" class="btn btn-primary cur-location-btn">Use Current Location</button>
+              <div class="btn-group" style="width: 100%">
+                <input class="btn-check" type="radio" name="exercise-options" id="runCheck" autocomplete="off" checked/>
+                <label class="btn btn-secondary btn-left" for="runCheck">
+                  <img class="routeTypeImg" src="https://pass-the-baton.nyc3.digitaloceanspaces.com/assets/running.png" width="15" height="15">
+                  Run / Walk
+                </label>
+                <input class="btn-check" type="radio" name="exercise-options" id="bikeCheck" autocomplete="off"/>
+                <label class="btn btn-secondary btn-right" for="bikeCheck">
+                  <img class="routeTypeImg" src="https://pass-the-baton.nyc3.digitaloceanspaces.com/assets/cycling.png" width="15" height="15">
+                  Bike
+                </label>
               </div>
             </div>
 
             <form id="randLoopForm" class="mx-3 py-3 d-none">
-              <div class="mb-3 geocoders"></div>
-              <div class="mb-3">
-                <label for="distance" class="form-label">Distance</label>
-                <input type="number" class="form-control" min="0" value="0" step=".1" id="distance">
+              <div style="display: flex; column-gap: 2%;">
+                <div class="geocoders"></div>
+                <button type="button" class="btn btn-primary cur-location-btn" style="height: 100%;">Use Current Location</button>
               </div>
-              <div class="mb-3">
-                <label for="distanceAccuracy" class="form-label">Route Distance Accuracy</label>
-                <input type="range" class="form-range" min="0.45" max="0.95" step="0.05" id="distanceAccuracy">
+              <div class="mb-4" style="display: flex; column-gap: 5%;">
+                <div style="width: 20%;">
+                  <label for="distance" class="form-label">Distance</label>
+                  <input type="number" class="form-control" min="0" value="0" step=".1" id="distance">
+                </div>
+                <div style="width: 100%;">
+                  <label for="distanceAccuracy" class="form-label">Route Distance Accuracy</label>
+                  <input type="range" class="form-range" min="0.45" max="0.95" step="0.05" id="distanceAccuracy">
+                </div>
               </div>
-              <div class="btn-group mb-3">
+              <div class="btn-group mb-4">
                 <input class="btn-check" type="radio" name="routeRotation" id="clockwise" autocomplete="off" checked/>
-                <label class="btn btn-secondary" for="clockwise">Clockwise</label>
+                <label class="btn btn-secondary btn-left" for="clockwise">Clockwise</label>
                 <input class="btn-check" type="radio" name="routeRotation" id="antiClockwise" autocomplete="off"/>
-                <label class="btn btn-secondary" for="antiClockwise">Anti-Clockwise</label>
+                <label class="btn btn-secondary btn-right" for="antiClockwise">Anti-Clockwise</label>
               </div>
             </form>
 
             <form id="randRouteForm" class="mx-3 py-3 d-none">
-              <div class="mb-3 geocoders"></div>
+              <div style="display: flex; column-gap: 2%;">
+                <div class="mb-3 geocoders"></div>
+                <button type="button" class="btn btn-primary cur-location-btn" style="height: 100%;">Use Current Location</button>
+              </div>
             </form>
 
             <form id="customRouteForm" class="mx-3 py-3 d-none">
-              <div class="mb-3 geocoders"></div>
+              <div style="display: flex; column-gap: 2%;">
+                <div class="mb-3 geocoders"></div>
+                <button type="button" class="btn btn-primary cur-location-btn" style="height: 100%;">Use Current Location</button>
+              </div>
             </form>
             <div class="universalFormItems mx-3 d-none">
-              <button class="btn btn-primary" id="generateRoute" type="button">Generate Route</button>
-              <button class="btn btn-warning clear-btn" type="button">Reset</button>
+              <button class="btn btn-success" id="generateRoute" type="button" style="min-width: 88%; min-height: 2.5rem;">Generate Route</button>
+              <button class="btn btn-warning clear-btn" type="button" style="min-height: 2.5rem;">Reset</button>
             </div>
             <div id="loadingAnimation" class="d-flex align-items-center mx-3 mt-4 d-none">
               <strong role="status">Generating...</strong>

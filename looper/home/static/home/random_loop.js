@@ -36,10 +36,7 @@ export class RandomLoop{
             alert('Please enter a valid starting location');
             return false;
         }
-        if(document.getElementById('distance').value <= 0){
-            return false;
-        }
-        return true;
+        return document.getElementById('distance').value > 0;
     }
 
 
@@ -171,7 +168,7 @@ export class RandomLoop{
 
         let distance = this.getDistance() * distanceAdjustmentRatio;
 
-        let numRandomWaypoints = this.randomIntFromInterval(4, 7);
+        let numRandomWaypoints = this.randomIntFromInterval(3, 3);
         console.log("number of random waypoints is: " + numRandomWaypoints);
         
         let legDistances = this.randomizeEachLegValues(distance, numRandomWaypoints);

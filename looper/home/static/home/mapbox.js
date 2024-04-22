@@ -152,7 +152,10 @@ document.addEventListener('keydown', function(event) {
 // walkway bias is slowing the generation - may want to obsolete this parameter
 function calculateOptimizedRoute(generateButtonClicked=true) {
     if(generateButtonClicked){
-        if(!routeType.validateFormSubmission()) return;
+        if(!routeType.validateFormSubmission()){
+            endLoadingAnimation();
+            return;
+        }
     }
     startLoadingAnimation();
     let exerciseType = document.getElementById('runCheck').checked ? 'walking' : 'cycling';
@@ -225,6 +228,25 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
                     'line-width': 6.5
                 }
             });
+            map.addLayer({  
+                id: 'arrows',  
+                type: 'symbol',  
+                source: 'route',  
+                layout: {  
+                    'symbol-placement': 'line',  
+                    'text-field': '▶',  
+                    'text-size': ['interpolate', ['linear'], ['zoom'], 12, 24, 22, 40],  
+                    'symbol-spacing': ['interpolate', ['linear'], ['zoom'], 12, 65, 22, 200],  
+                    'text-keep-upright': false  
+                },  
+                paint: {  
+                    'text-color': '#3887be',  
+                    'text-halo-color': 'hsl(55, 11%, 96%)',  
+                    'text-halo-width': 3  
+                }  
+                },  
+                'waterway-label'  
+            );
             endLoadingAnimation();
         })
         .catch(error => {
@@ -238,8 +260,9 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
 }
 
 function removeExistingRouteLayer(){
-    if(map.getSource('route') != null && map.getLayer('route') != null){
-        map.removeLayer('route')
+    if(map.getSource('route') != null && map.getLayer('route') != null && map.getLayer('arrows') != null){
+        map.removeLayer('route');
+        map.removeLayer('arrows');
         map.removeSource('route');
     }
 }
@@ -316,10 +339,7 @@ function clearForm(){
     endingLocationFields.forEach(field => {
        field.value = '';
     });
-    if(map.getSource('route') != null && map.getLayer('route') != null){
-        map.removeLayer('route')
-        map.removeSource('route');
-    }
+    removeExistingRouteLayer();
     const routeDetails = document.getElementById('route-distance');
     routeDetails.innerHTML = "";
 }
