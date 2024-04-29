@@ -447,7 +447,7 @@ export function createMarker(coordinates, placeName, markerType, addToMap=true){
     let popup = placeName != null ? new mapboxgl.Popup().setHTML(`<p>${placeName}</p>`) : new mapboxgl.Popup();
     if(markerType != null){
         popup = new mapboxgl.Popup().setHTML(`<p>${placeName}</p>
-            <button type="button" class="popupButton ${markerType}Point">Set ${capitalize(markerType)} Point</button>`);
+            <button type="button" class="popupButton btn btn-success ${markerType}Point">Set ${capitalize(markerType)} Point</button>`);
     }
     let marker = new mapboxgl.Marker()
         .setLngLat(coordinates)

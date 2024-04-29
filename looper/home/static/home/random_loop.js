@@ -145,6 +145,21 @@ export class RandomLoop{
     }
 
 
+    haversine(lastCoords, startingCoords) {
+        const earthRadius = 6378.137;
+        let lat1 = this.toRadians(lastCoords[1]);
+        let lng1 = this.toRadians(lastCoords[0]);
+        let lat2 = this.toRadians(startingCoords[1]);
+        let lng2 = this.toRadians(startingCoords[0]);
+        const lat = lat2 - lat1;
+        const lng = lng2 - lng1;
+        const d = (Math.sin(lat * 0.5) ** 2) +
+                  (Math.cos(lat1) * Math.cos(lat2) * (Math.sin(lng * 0.5) ** 2));
+    
+        return earthRadius * 2 * Math.asin(Math.sqrt(d));
+    }
+
+
     inverseHaversine(baseCoords, distance, bearing) {
         let lat = this.toRadians(baseCoords[1]);
         let lng = this.toRadians(baseCoords[0]);
@@ -159,27 +174,8 @@ export class RandomLoop{
     }
 
 
-    getRandomWaypoints(startingCoords){
+    createCoordinatesList(legDistances, legAngles, numRandomWaypoints, startingCoords, adjusted=false){
         const earthRadius = 6378.137; // in km
-
-        console.log("starting coordinates are: " + startingCoords);
-
-        let distanceAdjustmentRatio = 0.75; // make this into a calculation based on averages and trends
-
-        let distance = this.getDistance() * distanceAdjustmentRatio;
-
-        let numRandomWaypoints = this.randomIntFromInterval(3, 3);
-        console.log("number of random waypoints is: " + numRandomWaypoints);
-        
-        let legDistances = this.randomizeEachLegValues(distance, numRandomWaypoints);
-        console.log("leg distances are: " + legDistances);
-
-        let legAngles = this.randomizeEachLegValues(360, numRandomWaypoints);
-        console.log("leg angles are: " + legAngles);
-
-        let inverseHaversine = this.inverseHaversine(startingCoords, legDistances[0]/earthRadius, this.toRadians(legAngles[0]));
-        console.log("inverse haversine coordinates are: " + inverseHaversine['lng'] + ", " + inverseHaversine['lat']);
-
         let waypoints = [];
         let basePoint = {'coordinates': startingCoords, 'angle': 0};
         for(let i = 0; i < numRandomWaypoints; i++) {
@@ -194,7 +190,39 @@ export class RandomLoop{
             basePoint['coordinates'] = newCoords;
             basePoint['angle'] += legAngles[i];
         }
-        return waypoints;
+        let realDistance = this.haversine(basePoint['coordinates'], startingCoords);
+        console.log("last leg distance was predicted to be: " + legDistances[legDistances.length-1] + " but the real distance was: " + realDistance);
+        let margin = legDistances.slice(-1) - realDistance;
+        if(adjusted){
+            return waypoints;
+        }
+
+        legDistances[legDistances.length-1] = realDistance;
+        let equalDistancePartition = margin / legDistances.length;
+        for(let i = 0; i < legDistances.length; i++) {
+            legDistances[i] += equalDistancePartition;
+        }
+        return this.createCoordinatesList(legDistances, legAngles, numRandomWaypoints, startingCoords, true);
+    }
+
+
+    getRandomWaypoints(startingCoords){
+        console.log("starting coordinates are: " + startingCoords);
+
+        let distanceAdjustmentRatio = 0.80; // make this into a calculation based on averages and trends
+
+        let distance = this.getDistance() * distanceAdjustmentRatio;
+
+        let numRandomWaypoints = this.randomIntFromInterval(3, 5);
+        console.log("number of random waypoints is: " + numRandomWaypoints);
+        
+        let legDistances = this.randomizeEachLegValues(distance, numRandomWaypoints);
+        console.log("leg distances are: " + legDistances);
+
+        let legAngles = this.randomizeEachLegValues(360, numRandomWaypoints);
+        console.log("leg angles are: " + legAngles);
+
+        return this.createCoordinatesList(legDistances, legAngles, numRandomWaypoints, startingCoords);
     }
 
 

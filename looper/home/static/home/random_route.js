@@ -105,7 +105,7 @@ export class RandomRoute{
             setDraggable(marker, this.markerList[markerIndex]);
         }
         else if(!this.isGenerated) {
-            markerBuffer["marker"].remove();
+            this.markerList[markerIndex] = replaceMarker(this.markerList[markerIndex], markerBuffer, marker);
             let markerValues = {'marker': marker, 'coordinates' : markerBuffer["coordinates"], 'placeName': markerBuffer["placeName"]};
             this.markerList[markerIndex] = markerValues;
             setDraggable(marker, this.markerList[markerIndex]);
