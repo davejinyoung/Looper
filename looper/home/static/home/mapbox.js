@@ -444,10 +444,18 @@ export function initializeMarkerAndPopup(curMarkerBuff, coordinates, placeName, 
 
 
 export function createMarker(coordinates, placeName, markerType, addToMap=true){
-    let popup = placeName != null ? new mapboxgl.Popup().setHTML(`<p>${placeName}</p>`) : new mapboxgl.Popup();
+    let address = placeName.replace(/^([^,]*,[^,]*).*/, '$1');
+    let popup = placeName != null ? new mapboxgl.Popup().setHTML(`<p>${address}</p>`) : new mapboxgl.Popup();
     if(markerType != null){
-        popup = new mapboxgl.Popup().setHTML(`<p>${placeName}</p>
-            <button type="button" class="popupButton btn btn-success ${markerType}Point">Set ${capitalize(markerType)} Point</button>`);
+        popup = new mapboxgl.Popup().setHTML(`
+            <div class="center">
+                <p style="font-size:0.8rem">${address}</p>
+            </div>
+            <div class="d-flex justify-content-center">
+                <button type="button" class="popupButton btn btn-success ${markerType}Point">Set ${capitalize(markerType)} Point</button>
+            </div>
+            
+        `);
     }
     let marker = new mapboxgl.Marker()
         .setLngLat(coordinates)
