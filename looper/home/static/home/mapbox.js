@@ -198,7 +198,7 @@ let myLineChart = new Chart(document.getElementById('chart-canvas'), {
 });
 
 function updateElevationProfile(lineData) {
-    const chunks = turf.lineChunk(lineData, 0.1).features;
+    const chunks = turf.lineChunk(lineData, 0.01).features;
     const elevations = [
         ...chunks.map((feature) => {
             return map.queryTerrainElevation(
@@ -209,6 +209,16 @@ function updateElevationProfile(lineData) {
             chunks[chunks.length - 1].geometry.coordinates[1]
         )
     ];
+    let elevationGain = 0;
+    let index = 0;
+    let currentElevation = elevations[0];
+    while (index < elevations.length) {
+        if (currentElevation < elevations[index]) {
+            elevationGain += elevations[index] - currentElevation;
+        }
+        currentElevation = elevations[index];
+        index += 10; // sampling every 10 meters
+    }
 
     myLineChart.data.labels = elevations.map(() => '');
     myLineChart.data.datasets[0] = {
@@ -217,6 +227,7 @@ function updateElevationProfile(lineData) {
         tension: 1
     };
     myLineChart.update();
+    return elevationGain;
 }
 
 // walkway bias is slowing the generation - may want to obsolete this parameter
@@ -272,9 +283,6 @@ async function calculateOptimizedRoute(generateButtonClicked=true) {
             });
         }
 
-        routeDetails(route);
-        routeType.isGenerated = true;
-
         let lineData = {
             type: 'Feature',
             properties: {},
@@ -320,7 +328,9 @@ async function calculateOptimizedRoute(generateButtonClicked=true) {
             },  
             'waterway-label'  
         );
-        updateElevationProfile(lineData);
+        let elevationGain = updateElevationProfile(lineData);
+        routeDetails(route, elevationGain);
+        routeType.isGenerated = true;
         endLoadingAnimation();
     } catch (error) {
         endLoadingAnimation();
@@ -385,12 +395,14 @@ clearButtons.forEach(button => {
     });
 });
 
-function routeDetails(route){
+function routeDetails(route, elevationGain){
     const distance = route.distance / 1000.0;
     const distanceElem = document.createTextNode(`Distance: ${distance.toFixed(2)} km`);
-    const routeDetails = document.getElementById('route-distance');
-    routeDetails.innerHTML = "";
-    routeDetails.appendChild(distanceElem);
+    const elevationGainElem = document.createTextNode(`Elevation Gain: ${elevationGain.toFixed(2)} m`);
+    document.getElementById('route-distance').innerHTML = "";
+    document.getElementById('route-distance').appendChild(distanceElem);
+    document.getElementById('route-elevation-gain').innerHTML = "";
+    document.getElementById('route-elevation-gain').appendChild(elevationGainElem);
 }
 
 function addMarkersToMap(){
