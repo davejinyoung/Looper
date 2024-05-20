@@ -150,7 +150,96 @@ document.addEventListener('keydown', function(event) {
 });
 
 // walkway bias is slowing the generation - may want to obsolete this parameter
-function calculateOptimizedRoute(generateButtonClicked=true) {
+// async function getElevationsAlongRoute(routeCoordinates) {
+//     const sampledPoints = turf.lineSliceAlong(turf.lineString(routeCoordinates), 0, turf.length(turf.lineString(routeCoordinates)), { units: 'kilometers' }).geometry.coordinates;
+//     const elevationPromises = sampledPoints.map(coordinates => {
+//         return map.queryTerrainElevation(coordinates, {
+//             layer: 'contour' // Ensure you are using the correct layer for your map
+//         }).then(elevation => {
+//             return { coordinates, elevation };
+//         });
+//     });
+
+//     const elevations = await Promise.all(elevationPromises);
+//     return elevations;
+// }
+
+let myLineChart = new Chart(document.getElementById('chart-canvas'), {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: []
+    },
+    options: {
+        plugins: {
+            legend: {
+                display: false
+            },
+            title: {
+                display: true,
+                align: 'start',
+                text: 'Elevation (m)'
+            }
+        },
+        maintainAspectRatio: false,
+        responsive: true,
+        scales: {
+            x: {
+                grid: {
+                    display: false
+                }
+            },
+            y: {
+                min: 0,
+                grid: {
+                    display: false
+                }
+            }
+        },
+        elements: {
+            point: {
+                radius: 0
+            }
+        },
+        layout: {
+            padding: {
+                top: 6,
+                right: 20,
+                bottom: -10,
+                left: 20
+            }
+        }
+    }
+});
+
+function updateElevationProfile(lineData) {
+    // split the line into 1km segments
+    const chunks = turf.lineChunk(lineData, 0.1).features;
+
+    // get the elevation for the leading coordinate of each segment
+    const elevations = [
+        ...chunks.map((feature) => {
+            return map.queryTerrainElevation(
+                feature.geometry.coordinates[0]
+            );
+        }),
+        // do not forget the last coordinate
+        map.queryTerrainElevation(
+            chunks[chunks.length - 1].geometry.coordinates[1]
+        )
+    ];
+
+    // add dummy labels
+    myLineChart.data.labels = elevations.map(() => '');
+    myLineChart.data.datasets[0] = {
+        data: elevations,
+        fill: false,
+        tension: 1
+    };
+    myLineChart.update();
+}
+
+async function calculateOptimizedRoute(generateButtonClicked=true) {
     if(generateButtonClicked){
         if(!routeType.validateFormSubmission()){
             endLoadingAnimation();
@@ -166,97 +255,119 @@ function calculateOptimizedRoute(generateButtonClicked=true) {
     const controller = new AbortController();
     const signal = controller.signal;
 
-    fetch(queryURL, { signal })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+    try {
+        const response = await fetch(queryURL, { signal });
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        removeExistingRouteLayer();
+        const routes = data.routes;
+        const allCoordinates = routes.reduce((acc, route) => {
+            return acc.concat(route.geometry.coordinates);
+        }, []);
+
+        const route = data.routes[0];
+        const routeCoordinates = route.geometry.coordinates;
+
+        // // Get elevations along the route
+        // const elevations = await getElevationsAlongRoute(routeCoordinates);
+        // console.log('Elevations:', elevations);
+
+        // // Extract distance and elevation for the chart
+        // const distances = [];
+        // const elevationData = [];
+        // let cumulativeDistance = 0;
+        // for (let i = 0; i < elevations.length - 1; i++) {
+        //     const current = elevations[i];
+        //     const next = elevations[i + 1];
+        //     const segmentDistance = turf.distance(turf.point(current.coordinates), turf.point(next.coordinates));
+        //     cumulativeDistance += segmentDistance;
+        //     distances.push(cumulativeDistance.toFixed(2));
+        //     elevationData.push(current.elevation);
+        // }
+
+        // drawElevationChart(distances, elevationData);
+
+        if(routeType instanceof RandomLoop && generateButtonClicked){
+            let distanceMargin = routeType.getDistanceMargin();
+            if(route.distance <  distanceMargin['min'] || route.distance > distanceMargin['max']) {
+                controller.abort();
+                calculateOptimizedRoute();
+                return;
             }
-            return response.json();
-        })
-        .then(data => {
-            removeExistingRouteLayer();
-            const routes = data.routes;
-            const allCoordinates = routes.reduce((acc, route) => {
-                return acc.concat(route.geometry.coordinates);
-            }, []);
+            addMarkersToMap();
+        }
+        enableDraggableMarkers();
 
-            const route = data.routes[0];
-            const routeCoordinates = route.geometry.coordinates;
-
-            if(routeType instanceof RandomLoop && generateButtonClicked){
-                let distanceMargin = routeType.getDistanceMargin();
-                if(route.distance <  distanceMargin['min'] || route.distance > distanceMargin['max']) {
-                    controller.abort();
-                    calculateOptimizedRoute();
-                    return;
-                }
-                addMarkersToMap();
-            }
-            enableDraggableMarkers();
-
-            if(generateButtonClicked){
-                const bounds = allCoordinates.reduce((bounds, coord) => {
-                    return bounds.extend(coord);
-                }, new mapboxgl.LngLatBounds(allCoordinates[0], allCoordinates[0]));
-                map.fitBounds(bounds, {
-                    padding: 40,
-                    linear: true
-                });
-            }
-
-            routeDetails(route);
-            routeType.isGenerated = true;
-
-            map.addSource('route', { type: 'geojson', data: {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                    type: 'LineString',
-                    coordinates: routeCoordinates
-                }
-            }});
-            map.addLayer({
-                id: 'route',
-                type: 'line',
-                source: 'route',
-                layout: {
-                    'line-join': 'round',
-                    'line-cap': 'round'
-                },
-                paint: {
-                    'line-color': '#174ba6',
-                    'line-width': 6.5
-                }
+        if(generateButtonClicked){
+            const bounds = allCoordinates.reduce((bounds, coord) => {
+                return bounds.extend(coord);
+            }, new mapboxgl.LngLatBounds(allCoordinates[0], allCoordinates[0]));
+            map.fitBounds(bounds, {
+                padding: 40,
+                linear: true
             });
-            map.addLayer({  
-                id: 'arrows',  
-                type: 'symbol',  
-                source: 'route',  
-                layout: {  
-                    'symbol-placement': 'line',  
-                    'text-field': '▶',  
-                    'text-size': ['interpolate', ['linear'], ['zoom'], 12, 24, 22, 40],  
-                    'symbol-spacing': ['interpolate', ['linear'], ['zoom'], 12, 65, 22, 200],  
-                    'text-keep-upright': false  
-                },  
-                paint: {  
-                    'text-color': '#3887be',  
-                    'text-halo-color': 'hsl(55, 11%, 96%)',  
-                    'text-halo-width': 3  
-                }  
-                },  
-                'waterway-label'  
-            );
-            endLoadingAnimation();
-        })
-        .catch(error => {
-            endLoadingAnimation();
-            if (error.name === 'AbortError') {
-                console.log('Fetch aborted');
-            } else {
-                console.error('Fetch error:', error);
+        }
+
+        routeDetails(route);
+        routeType.isGenerated = true;
+
+        let lineData = {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+                type: 'LineString',
+                coordinates: routeCoordinates
+            }
+        };
+
+        map.addSource('route', { 
+            type: 'geojson', 
+            data: lineData
+        });
+        map.addLayer({
+            id: 'route',
+            type: 'line',
+            source: 'route',
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            paint: {
+                'line-color': '#174ba6',
+                'line-width': 6.5
             }
         });
+        map.addLayer({  
+            id: 'arrows',  
+            type: 'symbol',  
+            source: 'route',  
+            layout: {  
+                'symbol-placement': 'line',  
+                'text-field': '▶',  
+                'text-size': ['interpolate', ['linear'], ['zoom'], 12, 24, 22, 40],  
+                'symbol-spacing': ['interpolate', ['linear'], ['zoom'], 12, 65, 22, 200],  
+                'text-keep-upright': false  
+            },  
+            paint: {  
+                'text-color': '#3887be',  
+                'text-halo-color': 'hsl(55, 11%, 96%)',  
+                'text-halo-width': 3  
+            }  
+            },  
+            'waterway-label'  
+        );
+        updateElevationProfile(lineData);
+        endLoadingAnimation();
+    } catch (error) {
+        endLoadingAnimation();
+        if (error.name === 'AbortError') {
+            console.log('Fetch aborted');
+        } else {
+            console.error('Fetch error:', error);
+        }
+    }
 }
 
 function removeExistingRouteLayer(){
@@ -314,7 +425,7 @@ clearButtons.forEach(button => {
 
 function routeDetails(route){
     const distance = route.distance / 1000.0;
-    const distanceElem = document.createTextNode(`${distance.toFixed(2)} km`);
+    const distanceElem = document.createTextNode(`Distance: ${distance.toFixed(2)} km`);
     const routeDetails = document.getElementById('route-distance');
     routeDetails.innerHTML = "";
     routeDetails.appendChild(distanceElem);
@@ -444,7 +555,7 @@ export function initializeMarkerAndPopup(curMarkerBuff, coordinates, placeName, 
 
 
 export function createMarker(coordinates, placeName, markerType, addToMap=true){
-    let address = placeName.replace(/^([^,]*,[^,]*).*/, '$1');
+    let address = placeName != null ? placeName.replace(/^([^,]*,[^,]*).*/, '$1') : "";
     let popup = placeName != null ? new mapboxgl.Popup().setHTML(`<p>${address}</p>`) : new mapboxgl.Popup();
     if(markerType != null){
         popup = new mapboxgl.Popup().setHTML(`

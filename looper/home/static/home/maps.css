@@ -121,3 +121,18 @@ body {
   border-radius: 50%;
   cursor: pointer;
 }
+
+#chart-container {
+  height: 25%;
+  width: 100%;
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+}
+
+#chart-inner-container {
+  position: relative;
+  margin: auto;
+  height: 100%;
+  width: 100%;
+}
