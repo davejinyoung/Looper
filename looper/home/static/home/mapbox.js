@@ -149,21 +149,6 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-// walkway bias is slowing the generation - may want to obsolete this parameter
-// async function getElevationsAlongRoute(routeCoordinates) {
-//     const sampledPoints = turf.lineSliceAlong(turf.lineString(routeCoordinates), 0, turf.length(turf.lineString(routeCoordinates)), { units: 'kilometers' }).geometry.coordinates;
-//     const elevationPromises = sampledPoints.map(coordinates => {
-//         return map.queryTerrainElevation(coordinates, {
-//             layer: 'contour' // Ensure you are using the correct layer for your map
-//         }).then(elevation => {
-//             return { coordinates, elevation };
-//         });
-//     });
-
-//     const elevations = await Promise.all(elevationPromises);
-//     return elevations;
-// }
-
 let myLineChart = new Chart(document.getElementById('chart-canvas'), {
     type: 'line',
     data: {
@@ -213,23 +198,18 @@ let myLineChart = new Chart(document.getElementById('chart-canvas'), {
 });
 
 function updateElevationProfile(lineData) {
-    // split the line into 1km segments
     const chunks = turf.lineChunk(lineData, 0.1).features;
-
-    // get the elevation for the leading coordinate of each segment
     const elevations = [
         ...chunks.map((feature) => {
             return map.queryTerrainElevation(
                 feature.geometry.coordinates[0]
             );
         }),
-        // do not forget the last coordinate
         map.queryTerrainElevation(
             chunks[chunks.length - 1].geometry.coordinates[1]
         )
     ];
 
-    // add dummy labels
     myLineChart.data.labels = elevations.map(() => '');
     myLineChart.data.datasets[0] = {
         data: elevations,
@@ -239,6 +219,7 @@ function updateElevationProfile(lineData) {
     myLineChart.update();
 }
 
+// walkway bias is slowing the generation - may want to obsolete this parameter
 async function calculateOptimizedRoute(generateButtonClicked=true) {
     if(generateButtonClicked){
         if(!routeType.validateFormSubmission()){
@@ -269,25 +250,6 @@ async function calculateOptimizedRoute(generateButtonClicked=true) {
 
         const route = data.routes[0];
         const routeCoordinates = route.geometry.coordinates;
-
-        // // Get elevations along the route
-        // const elevations = await getElevationsAlongRoute(routeCoordinates);
-        // console.log('Elevations:', elevations);
-
-        // // Extract distance and elevation for the chart
-        // const distances = [];
-        // const elevationData = [];
-        // let cumulativeDistance = 0;
-        // for (let i = 0; i < elevations.length - 1; i++) {
-        //     const current = elevations[i];
-        //     const next = elevations[i + 1];
-        //     const segmentDistance = turf.distance(turf.point(current.coordinates), turf.point(next.coordinates));
-        //     cumulativeDistance += segmentDistance;
-        //     distances.push(cumulativeDistance.toFixed(2));
-        //     elevationData.push(current.elevation);
-        // }
-
-        // drawElevationChart(distances, elevationData);
 
         if(routeType instanceof RandomLoop && generateButtonClicked){
             let distanceMargin = routeType.getDistanceMargin();
