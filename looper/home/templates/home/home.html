@@ -134,10 +134,10 @@
                 <button type="button" class="btn btn-primary cur-location-btn" style="height: 100%;">Use Current Location</button>
               </div>
             </form>
-            <div class="universalFormItems mx-3 d-none">
-              <button class="btn btn-success" id="generateRoute" type="button" style="min-width: 88%; min-height: 2.5rem;">Generate Route</button>
+            <span class="universalFormItems mx-3 d-none" style="display: grid; grid-template-columns: 80% 20%; gap: 1%;">
+              <button class="btn btn-success" id="generateRoute" type="button" style="min-height: 2.5rem;">Generate Route</button>
               <button class="btn btn-warning clear-btn" type="button" style="min-height: 2.5rem;">Reset</button>
-            </div>
+            </span>
             <div id="loadingAnimation" class="d-flex align-items-center mx-3 mt-4 d-none">
               <strong role="status">Generating...</strong>
               <div class="spinner-border ms-auto" aria-hidden="true"></div>
@@ -146,14 +146,16 @@
         </div>
         <div class="route-details">
           <h3>Route Details</h3>
-          <br>
-          <h6 id="route-distance"></h6>
-          <h6 id="route-elevation-gain"></h6>
-          <br>
-          <div id="chart-container">
+          <div class="route-details-elements d-none">
+            <br>
+            <h6 id="route-distance"></h6>
+            <h6 id="route-elevation-gain"></h6>
+            <br>
+            <div id="chart-container">
             <div id="chart-inner-container">
                 <canvas id="chart-canvas"></canvas>
             </div>
+          </div>
           </div>
         </div>
       </div>

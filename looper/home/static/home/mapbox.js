@@ -398,7 +398,8 @@ clearButtons.forEach(button => {
 function routeDetails(route, elevationGain){
     const distance = route.distance / 1000.0;
     const distanceElem = document.createTextNode(`Distance: ${distance.toFixed(2)} km`);
-    const elevationGainElem = document.createTextNode(`Elevation Gain: ${elevationGain.toFixed(2)} m`);
+    const elevationGainElem = document.createTextNode(`Elevation Gain: ${elevationGain.toFixed(0)} m`);
+    document.querySelector('.route-details-elements').classList.remove("d-none");
     document.getElementById('route-distance').innerHTML = "";
     document.getElementById('route-distance').appendChild(distanceElem);
     document.getElementById('route-elevation-gain').innerHTML = "";
@@ -425,8 +426,7 @@ function clearForm(){
        field.value = '';
     });
     removeExistingRouteLayer();
-    const routeDetails = document.getElementById('route-distance');
-    routeDetails.innerHTML = "";
+    const routeDetails = document.querySelector('.route-details-elements').classList.add("d-none");
 }
 
 
