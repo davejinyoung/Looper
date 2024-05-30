@@ -52,6 +52,37 @@ document.getElementById('satelliteView').addEventListener('click', function() {
     }
 });
 
+document.getElementById('saveRoute').addEventListener('click', function() {
+    saveRoute(getWaypointCoordinates(false), "this is a test");
+});
+
+function saveRoute(waypoints, test) {
+    let obj = { 'waypoints': waypoints, 'test': test };
+    fetch('/save_route/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(obj)
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        let cookies = document.cookie.split(';');
+        for (const element of cookies) {
+            let cookie = element.trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 
 function showForm(selectedForm) {
     // Hide all forms

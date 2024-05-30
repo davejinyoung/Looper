@@ -5,4 +5,5 @@ from . import views
 urlpatterns = [
     path("home/", views.home, name="home"),
     path("saved-routes/", views.saved_routes, name="saved_routes"),
+    path("save_route/", views.save_route, name="save_route"),
 ]

@@ -17,6 +17,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.1/axios.min.js"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'home/maps.css' %}">
     <script type="module" src="{% static 'home/maps.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
 
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.0/mapbox-gl.js'></script>
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
@@ -134,8 +135,9 @@
                 <button type="button" class="btn btn-primary cur-location-btn" style="height: 100%;">Use Current Location</button>
               </div>
             </form>
-            <span class="universalFormItems mx-3 d-none" style="display: grid; grid-template-columns: 80% 20%; gap: 1%;">
+            <span class="universalFormItems mx-3 d-none" style="display: grid; grid-template-columns: 70% 15% 15%; gap: 1%;">
               <button class="btn btn-success" id="generateRoute" type="button" style="min-height: 2.5rem;">Generate Route</button>
+              <button class="btn btn-primary" id="saveRoute" type="button" style="min-height: 2.5rem;">Save</button>
               <button class="btn btn-warning clear-btn" type="button" style="min-height: 2.5rem;">Reset</button>
             </span>
             <div id="loadingAnimation" class="d-flex align-items-center mx-3 mt-4 d-none">
