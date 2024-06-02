@@ -16,10 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from home import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("django.contrib.auth.urls")),
     path("", include("sign_in_out.urls")),
     path("", include("home.urls")),
+    path('api/saved_routes/', views.saved_routes_api, name='saved_routes_api'),
 ]

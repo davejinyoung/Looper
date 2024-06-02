@@ -1,4 +1,4 @@
-import { getPlaceName, setDraggable, createGeocoder, setGeocoder, initializeMarkerAndPopup, createMarker, replaceMarker } from './mapbox.js';
+import { createGeocoder, setGeocoder, initializeMarkerAndPopup, createMarker } from './mapbox.js';
 
 export class RandomLoop{
 

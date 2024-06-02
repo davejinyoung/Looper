@@ -592,3 +592,7 @@ export function replaceMarker(markerDict, markerBuffDict, newMarker){
     markerDict = {'marker': newMarker, 'coordinates' : markerBuffDict["coordinates"], 'placeName': markerBuffDict["placeName"]};
     return markerDict;
 }
+
+export function retrieveSavedRoute(markerDict, markerBuffDict, newMarker){
+    var test = 10;
+}

@@ -1,8 +1,7 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
 class Route(models.Model):
-    start_point = models.CharField(max_length=255)
-    end_point = models.CharField(max_length=255)
-    total_distance = models.FloatField()
-    total_time = models.FloatField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=2)
+    waypoints = models.CharField(max_length=255)

@@ -1,8 +1,11 @@
 from django.shortcuts import render
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from .models import Route
+from .serializers import RouteSerializer
 import json
 
 # Create your views here.
@@ -11,6 +14,11 @@ import json
 def home(request):
     return render(request, 'home/home.html')
 
+@api_view(['GET'])
+def saved_routes_api(request):
+    routes = Route.objects.filter(user=request.user)
+    serializer = RouteSerializer(routes, many=True)
+    return Response(serializer.data)
 
 @login_required(login_url="/login")
 def saved_routes(request):
@@ -20,12 +28,10 @@ def save_route(request):
     data = json.loads(request.body)
     print(data["waypoints"])
     print(data["test"])
-    # route = Route(
-    #     start_point = data['start_point'],
-    #     end_point = data['end_point'],
-    #     total_distance = data['total_distance'],
-    #     total_time = data['total_time']
-    # )
-    # print(route)
-    # route.save()
+    route = Route(
+        user=request.user,
+        waypoints = data['waypoints']
+    )
+    print(route)
+    route.save()
     return JsonResponse({'status': 'success'})
