@@ -121,7 +121,7 @@
         {% endblock %}
         <div class="route-details">
           <h3>Route Details</h3>
-          {% block route-details %}
+          {% block route-details %}{% endblock %}
           <div class="route-details-elements d-none">
             <br>
             <h6 id="route-distance"></h6>
@@ -133,7 +133,6 @@
               </div>
             </div>
           </div>
-          {% endblock %}
         </div>
       </div>
       <div id="map"></div>

@@ -2,7 +2,6 @@
 
 {% block form-elements %}{% endblock %}
 {% block route-details %}
-<button type="button" class="btn btn-primary retrieve-route">Retrieve Route</button>
   <div id="routes-container"></div>
 {% endblock %}
 
@@ -28,7 +27,7 @@
                 data.forEach(route => {
                     allWaypoints.push(route.waypoints);
                     const routeElement = document.createElement("div");
-                    routeElement.innerHTML = `<button>${count} Waypoints: ${route.waypoints}</button>`;
+                    routeElement.innerHTML = `<button>Route ${count}</button>`;
                     routeElement.classList.add("routeNumber", `${count}`);
                     routesContainer.appendChild(routeElement);
                     count++;
@@ -38,12 +37,21 @@
                     element.addEventListener('click', function(event) {
                         console.log(element.classList[1]);
                         let index = element.classList[1] - 1;
+                        removeExistingRouteLayer();
                         calculateOptimizedRoute(allWaypoints[index]);
                     });
                 });
             })
             .catch(error => console.error('Error fetching routes:', error));
     });
+
+    function removeExistingRouteLayer(){
+        if(map.getSource('route') != null && map.getLayer('route') != null && map.getLayer('arrows') != null){
+            map.removeLayer('route');
+            map.removeLayer('arrows');
+            map.removeSource('route');
+        }
+    }
 
     async function calculateOptimizedRoute(waypoint) {
         let exerciseType = 'walking'; // TODO: retrieve this info from db
@@ -60,9 +68,6 @@
             }
             const data = await response.json();
             const routes = data.routes;
-            const allCoordinates = routes.reduce((acc, route) => {
-                return acc.concat(route.geometry.coordinates);
-            }, []);
     
             const route = data.routes[0];
             const routeCoordinates = route.geometry.coordinates;
@@ -113,7 +118,7 @@
                 'waterway-label'  
             );
             // let elevationGain = updateElevationProfile(lineData);
-            // routeDetails(route, elevationGain);
+            routeDetails(route);
         } catch (error) {
             if (error.name === 'AbortError') {
                 console.log('Fetch aborted');
@@ -121,6 +126,15 @@
                 console.error('Fetch error:', error);
             }
         }
+    }
+    
+    function routeDetails(route, ){
+        const distance = route.distance / 1000.0;
+        const distanceElem = document.createTextNode(`Distance: ${distance.toFixed(2)} km`);
+        document.querySelector('.route-details-elements').classList.remove("d-none");
+        document.getElementById('route-distance').innerHTML = "";
+        document.getElementById('route-distance').appendChild(distanceElem);
+        document.getElementById('route-elevation-gain').innerHTML = "";
     }
     //# sourceURL=saved_routes.js
     </script>
