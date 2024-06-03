@@ -12,6 +12,17 @@ const map = new mapboxgl.Map({
     projection: 'mercator'
 });
 
+map.on('style.load', () => {
+    map.addSource('mapbox-dem', {
+        'type': 'raster-dem',
+        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        'tileSize': 512,
+        'maxzoom': 14
+    });
+    // add the DEM source as a terrain layer with exaggerated height
+    map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+});
+
 let routeType;
 
 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
@@ -126,17 +137,6 @@ geolocateControl.on('geolocate', (event) => {
     }
 })
 
-map.on('style.load', () => {
-    map.addSource('mapbox-dem', {
-        'type': 'raster-dem',
-        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        'tileSize': 512,
-        'maxzoom': 14
-    });
-    // add the DEM source as a terrain layer with exaggerated height
-    map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-});
-
 // Script for location of clicked area on map
 map.on('click', (event) => {
     const coordinates = [event.lngLat.lng, event.lngLat.lat];
@@ -233,11 +233,11 @@ function updateElevationProfile(lineData) {
     const elevations = [
         ...chunks.map((feature) => {
             return map.queryTerrainElevation(
-                feature.geometry.coordinates[0]
+                feature.geometry.coordinates[0], { exaggerated: false }
             );
         }),
         map.queryTerrainElevation(
-            chunks[chunks.length - 1].geometry.coordinates[1]
+            chunks[chunks.length - 1].geometry.coordinates[1], { exaggerated: false }
         )
     ];
     let elevationGain = 0;
@@ -248,7 +248,7 @@ function updateElevationProfile(lineData) {
             elevationGain += elevations[index] - currentElevation;
         }
         currentElevation = elevations[index];
-        index += 10; // sampling every 10 meters
+        index += 15; // sampling every 15 meters
     }
 
     myLineChart.data.labels = elevations.map(() => '');
@@ -310,7 +310,7 @@ async function calculateOptimizedRoute(generateButtonClicked=true) {
             }, new mapboxgl.LngLatBounds(allCoordinates[0], allCoordinates[0]));
             map.fitBounds(bounds, {
                 padding: 40,
-                linear: true
+                linear: true,
             });
         }
 
@@ -359,8 +359,10 @@ async function calculateOptimizedRoute(generateButtonClicked=true) {
             },  
             'waterway-label'  
         );
-        let elevationGain = updateElevationProfile(lineData);
-        routeDetails(route, elevationGain);
+        map.once('moveend', function() {
+            let elevationGain = updateElevationProfile(lineData);
+            routeDetails(route, elevationGain);
+        });
         routeType.isGenerated = true;
         endLoadingAnimation();
     } catch (error) {

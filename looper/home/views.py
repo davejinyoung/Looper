@@ -14,6 +14,10 @@ import json
 def home(request):
     return render(request, 'home/home.html')
 
+@login_required(login_url="/login")
+def profile(request):
+    return render(request, 'home/profile.html')
+
 @api_view(['GET'])
 def saved_routes_api(request):
     routes = Route.objects.filter(user=request.user)
@@ -34,4 +38,11 @@ def save_route(request):
     )
     print(route)
     route.save()
+    return JsonResponse({'status': 'success'})
+
+def delete_route(request):
+    data = json.loads(request.body)
+    print(data['routeId'])
+    route = Route.objects.get(id=data['routeId'])
+    route.delete()
     return JsonResponse({'status': 'success'})
