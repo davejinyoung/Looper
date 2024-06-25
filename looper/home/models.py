@@ -5,4 +5,5 @@ from django.contrib.auth.models import User
 class Route(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
     waypoints = models.CharField(max_length=255)
+    route_name = models.CharField(max_length=255, default="Route")
     

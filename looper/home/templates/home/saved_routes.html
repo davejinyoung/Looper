@@ -1,8 +1,12 @@
 {% extends 'home/home.html' %} {% block title %}My Routes{% endblock %}
 
-{% block form-elements %}{% endblock %}
+{% block form-elements %}
+    <div class="form-elements">
+        <h3 class="mb-4">Saved Routes</h3>
+        <div id="routes-container"></div>
+    </div>
+{% endblock %}
 {% block route-details %}
-  <div id="routes-container"></div>
 {% endblock %}
 
 {% block scripts %}
@@ -43,17 +47,28 @@
         let count = 1;
         data.forEach(route => {
             allWaypoints.push(route.waypoints);
-            const routeElement = document.createElement("div");
-            routeElement.classList.add("routeNumber", `${count}`);
+            const routeElement = document.createElement("span");
+            routeElement.classList.add("routeNumber", `${count}`, "universalFormItems", "my-2", "mx-3");
+            routeElement.style.display = "grid";
+            routeElement.style.gridTemplateColumns = "70% 15% 15%";
+            routeElement.style.gap = "1%";
 
             const routeButton = document.createElement("button");
-            routeButton.classList.add("routeButton");
+            routeButton.classList.add("routeButton", "btn", "btn-primary");
             routeButton.innerHTML = `Route ${count}`;
             routeElement.appendChild(routeButton);
 
+            // TODO: add functionality to edit route
+            const routeEditButton = document.createElement("button");
+            routeEditButton.id = route.id;
+            routeEditButton.classList.add("routeDeleteButton", "btn", "btn-success");
+            routeEditButton.innerHTML = 'Edit';
+            routeElement.appendChild(routeEditButton);
+            routesContainer.appendChild(routeElement);
+
             const routeDeleteButton = document.createElement("button");
             routeDeleteButton.id = route.id;
-            routeDeleteButton.classList.add("routeDeleteButton");
+            routeDeleteButton.classList.add("routeDeleteButton", "btn", "btn-danger");
             routeDeleteButton.innerHTML = 'Delete';
             routeElement.appendChild(routeDeleteButton);
             routesContainer.appendChild(routeElement);
