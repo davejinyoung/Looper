@@ -3,6 +3,22 @@
 {% block form-elements %}
     <div class="form-elements">
         <h3 class="mb-4">Saved Routes</h3>
+        
+        <div class="modal fade deleteButtonModal" id="deleteButtonModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title">Are you sure you want to permenantely delete this route?</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-footer" style="display: grid; grid-template-columns: 50% 50%;">
+                        <button type="button" id="confirmRouteDelete" class="btn btn-danger mx-3" data-bs-dismiss="modal">Yes</button>
+                        <button type="button" id="denyRouteDelete" class="btn btn-primary mx-3">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+          
         <div id="routes-container"></div>
     </div>
 {% endblock %}
@@ -61,7 +77,7 @@
             // TODO: add functionality to edit route
             const routeEditButton = document.createElement("button");
             routeEditButton.id = route.id;
-            routeEditButton.classList.add("routeDeleteButton", "btn", "btn-success");
+            routeEditButton.classList.add("routeEditButton", "btn", "btn-success");
             routeEditButton.innerHTML = 'Edit';
             routeElement.appendChild(routeEditButton);
             routesContainer.appendChild(routeElement);
@@ -74,6 +90,7 @@
             routesContainer.appendChild(routeElement);
             count++;
         });
+    
         var elements = document.querySelectorAll(".routeNumber");
         Array.from(elements).forEach(function(element) {
             console.log(element.classList[1]);
@@ -83,12 +100,38 @@
                 calculateOptimizedRoute(allWaypoints[index]);
             });
 
+            let deleteRouteModal = new bootstrap.Modal('#deleteButtonModal', { keyboard: false } );
             let deleteButtonElem = element.querySelector(".routeDeleteButton");
+
+            var routeId = -1;
             deleteButtonElem.addEventListener('click', function(event) {
-                removeRouteDetails();
-                removeExistingRouteLayer();
-                deleteRoute(deleteButtonElem.id)
-                deleteButtonElem.parentElement.remove();
+                deleteRouteModal.show();
+                routeId = deleteButtonElem.id;
+            });
+
+            document.querySelector('#deleteButtonModal #confirmRouteDelete').addEventListener('click', function(event) {
+                if (routeId != -1) {
+                    deleteRouteModal.hide();
+                    removeRouteDetails();
+                    removeExistingRouteLayer();
+                    deleteRoute(deleteButtonElem.id);
+                    deleteButtonElem.parentElement.remove();
+                    routeId = -1;
+                }
+            });
+
+            document.querySelector('#deleteButtonModal #denyRouteDelete').addEventListener('click', function(event) {
+                if (routeId != -1) {
+                    deleteRouteModal.hide();
+                    routeId = -1;
+                }
+            });
+
+            document.querySelector('#deleteButtonModal .btn-close').addEventListener('click', function(event) {
+                if (routeId != -1) {
+                    deleteRouteModal.hide();
+                    routeId = -1;
+                }
             });
         });
     }
