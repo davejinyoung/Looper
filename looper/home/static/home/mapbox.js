@@ -1,6 +1,5 @@
 import { RandomLoop } from "./random_loop.js";
-import { RandomRoute } from "./random_route.js";
-import { CustomRoute} from "./custom_route.js";
+import { CustomRoute } from "./custom_route.js";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiZGF2ZWppbnlvdW5nIiwiYSI6ImNscm84czI4ajA3ZHYya2w5c29wZmhwdWsifQ.4EwYfetiww7nb40hQV_RNQ';
 
@@ -66,8 +65,10 @@ document.getElementById('customRouteButton').addEventListener('click', function(
     }
 });
 
-document.getElementById('saveRoute').addEventListener('click', function() {
-    saveRoute(getWaypointCoordinates(false), "this is a test");
+Array.from(document.getElementsByClassName('saveRoute')).forEach(saveRouteButton => {
+    saveRouteButton.addEventListener('click', function() {
+        saveRoute(getWaypointCoordinates(false), "this is a test");
+    });
 });
 
 function saveRoute(waypoints, test) {
