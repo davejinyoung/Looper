@@ -36,8 +36,6 @@
             <input id="randLoopButton" type="radio" name="options" class="btn-check"/>
             <label class="btn btn-primary p-0.2rem" for="randLoopButton" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Automatically Create a Randomized Looping Route">Randomize</label>
 
-            <input id="randRouteButton" type="radio" name="options" class="btn-check"/>
-            <label class="btn btn-primary p-0.2rem" for="randRouteButton" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create a Point-A to Point-B Route">A to B</label>
 
             <input id="customRouteButton" type="radio" name="options" class="btn-check"/>
             <label class="btn btn-primary p-0.2rem" for="customRouteButton"data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create a Fully Customizable Route From Scratch">Customize</label>
@@ -45,18 +43,6 @@
 
           <div class="my-4">
             <div class="universalFormItems mx-3 my-3 d-none" style="display: flex; column-gap: 3%;">
-              <div class="btn-group mr-2" style="width: 100%">
-                <input id="streetView" type="radio" name="mapType" class="btn-check" checked/>
-                <label class="btn btn-secondary btn-left" for="streetView">
-                  <img class="routeTypeImg" src="{% static 'home/images/map_view.png' %}" alt="map view" width="15" height="15">
-                  Map View
-                </label>
-                <input id="satelliteView" type="radio" name="mapType" class="btn-check"/>
-                <label class="btn btn-secondary btn-right" for="satelliteView">
-                  <img class="routeTypeImg" src="https://static.thenounproject.com/png/2280827-200.png" width="15" height="15">
-                  Satellite View
-                </label>
-              </div>
               <div class="btn-group" style="width: 100%">
                 <input class="btn-check" type="radio" name="exercise-options" id="runCheck" autocomplete="off" checked/>
                 <label class="btn btn-secondary btn-left" for="runCheck">
@@ -92,13 +78,11 @@
                 <input class="btn-check" type="radio" name="routeRotation" id="antiClockwise" autocomplete="off"/>
                 <label class="btn btn-secondary btn-right" for="antiClockwise">Anti-Clockwise</label>
               </div>
-            </form>
-
-            <form id="randRouteForm" class="mx-3 py-3 d-none">
-              <div style="display: flex; column-gap: 2%;">
-                <div class="mb-3 geocoders"></div>
-                <button type="button" class="btn btn-primary cur-location-btn" style="height: 100%;">Use Current Location</button>
-              </div>
+              <span class="optionsButtons" style="display: grid; grid-template-columns: 50% 35% 15%; gap: 1%;">
+                <button class="btn btn-success" id="generateRoute" type="button" style="min-height: 2.5rem;">Generate Route</button>
+                <button class="btn btn-primary" id="saveRoute" type="button" style="min-height: 2.5rem;">Save</button>
+                <button class="btn btn-warning clear-btn" type="button" style="min-height: 2.5rem;">Reset</button>
+              </span>
             </form>
 
             <form id="customRouteForm" class="mx-3 py-3 d-none">
@@ -106,12 +90,11 @@
                 <div class="mb-3 geocoders"></div>
                 <button type="button" class="btn btn-primary cur-location-btn" style="height: 100%;">Use Current Location</button>
               </div>
+              <span class="optionsButtons" style="display: grid; grid-template-columns: 85% 15%; gap: 1%;">
+                <button class="btn btn-primary" id="saveRoute" type="button" style="min-height: 2.5rem;">Save</button>
+                <button class="btn btn-warning clear-btn" type="button" style="min-height: 2.5rem;">Reset</button>
+              </span>
             </form>
-            <span class="universalFormItems mx-3 d-none" style="display: grid; grid-template-columns: 70% 15% 15%; gap: 1%;">
-              <button class="btn btn-success" id="generateRoute" type="button" style="min-height: 2.5rem;">Generate Route</button>
-              <button class="btn btn-primary" id="saveRoute" type="button" style="min-height: 2.5rem;">Save</button>
-              <button class="btn btn-warning clear-btn" type="button" style="min-height: 2.5rem;">Reset</button>
-            </span>
             <div id="loadingAnimation" class="d-flex align-items-center mx-3 mt-4 d-none">
               <strong role="status">Generating...</strong>
               <div class="spinner-border ms-auto" aria-hidden="true"></div>

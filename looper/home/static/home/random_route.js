@@ -1,3 +1,5 @@
+ // TODO: Obsolote this file  
+
 import { getPlaceName, setDraggable, createGeocoder, setGeocoder, initializeMarkerAndPopup, createMarker, replaceMarker } from './mapbox.js';
 
 export class RandomRoute{

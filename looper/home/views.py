@@ -1,10 +1,13 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from django.contrib import messages
 from .models import Route
+from sign_in_out.models import UserProfile
+from sign_in_out.forms import UserForm, UserProfileForm
 from .serializers import RouteSerializer
 import json
 
@@ -46,3 +49,25 @@ def delete_route(request):
     route = Route.objects.get(id=data['routeId'])
     route.delete()
     return JsonResponse({'status': 'success'})
+
+@login_required(login_url="/login")
+def profile_settings(request):
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    if request.method == 'POST':
+        user_form = UserForm(request.POST, instance=request.user)
+        profile_form = UserProfileForm(request.POST, instance=user_profile)
+        
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Profile updated successfully')
+            return redirect('profile_settings')
+    else:
+        user_form = UserForm(instance=request.user)
+        profile_form = UserProfileForm(instance=user_profile)
+
+    return render(request, 'home/profile.html', {
+        'user_form': user_form,
+        'profile_form': profile_form
+    })

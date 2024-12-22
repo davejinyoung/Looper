@@ -36,6 +36,10 @@ export class RandomLoop{
             alert('Please enter a valid starting location');
             return false;
         }
+        if(distance.value == '' || distance.value <= 0){
+            alert('Please enter a valid distance');
+            return false;
+        }
         return document.getElementById('distance').value > 0;
     }
 

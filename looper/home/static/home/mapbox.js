@@ -23,6 +23,28 @@ map.on('style.load', () => {
     map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
 });
 
+var streetButton = document.createElement('streetButton');
+streetButton.id = 'street-button';
+streetButton.innerHTML = 'Street View';
+
+var satelliteButton = document.createElement('satelliteButton');
+satelliteButton.id = 'satellite-button';
+satelliteButton.innerHTML = 'Satellite View';
+
+// Add the button to the map container
+document.getElementById('map').appendChild(satelliteButton);
+document.getElementById('map').appendChild(streetButton);
+satelliteButton.addEventListener('click', function() {
+    map.setStyle('mapbox://styles/mapbox/satellite-streets-v12');
+    satelliteButton.style.display = 'none';
+    streetButton.style.display = 'block';
+});
+streetButton.addEventListener('click', function() {
+    map.setStyle('mapbox://styles/mapbox/streets-v12');
+    streetButton.style.display = 'none';
+    satelliteButton.style.display = 'block';
+});
+
 let routeType;
 
 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
@@ -36,30 +58,11 @@ document.getElementById('randLoopButton').addEventListener('click', function() {
         showForm(routeType.form);
     }
 });
-document.getElementById('randRouteButton').addEventListener('click', function() {
-    if(!(routeType instanceof RandomRoute)){
-        clearForm();
-        routeType = new RandomRoute();
-        showForm(routeType.form);
-    }
-});
 document.getElementById('customRouteButton').addEventListener('click', function() {
     if(!(routeType instanceof CustomRoute)){
         clearForm();
         routeType = new CustomRoute();
         showForm(routeType.form);
-    }
-});
-
-document.getElementById('streetView').addEventListener('click', function() {
-    if(map.getStyle().name != 'Mapbox Streets'){
-        map.setStyle('mapbox://styles/mapbox/streets-v12');
-    }
-});
-
-document.getElementById('satelliteView').addEventListener('click', function() {
-    if(map.getStyle() != 'Mapbox Satellite Streets'){
-        map.setStyle('mapbox://styles/mapbox/satellite-streets-v12');
     }
 });
 
@@ -104,7 +107,7 @@ function showForm(selectedForm) {
     if(selectedForm){
         selectedForm.classList.remove('d-none');
     }
-    document.querySelectorAll(".universalFormItems").forEach(form => {
+    document.querySelectorAll(".c").forEach(form => {
         form.classList.remove('d-none');
     });
     routeType.createInitialGeocoders(); 
@@ -262,7 +265,7 @@ function updateElevationProfile(lineData) {
 }
 
 // walkway bias is slowing the generation - may want to obsolete this parameter
-async function calculateOptimizedRoute(generateButtonClicked=true) {
+export async function calculateOptimizedRoute(generateButtonClicked=true) {
     if(generateButtonClicked){
         if(!routeType.validateFormSubmission()){
             endLoadingAnimation();
@@ -293,6 +296,7 @@ async function calculateOptimizedRoute(generateButtonClicked=true) {
         const route = data.routes[0];
         const routeCoordinates = route.geometry.coordinates;
 
+        // recursive call to calculateOptimizedRoute if the route is not within the distance margin
         if(routeType instanceof RandomLoop && generateButtonClicked){
             let distanceMargin = routeType.getDistanceMargin();
             if(route.distance <  distanceMargin['min'] || route.distance > distanceMargin['max']) {
@@ -302,8 +306,8 @@ async function calculateOptimizedRoute(generateButtonClicked=true) {
             }
             addMarkersToMap();
         }
-        enableDraggableMarkers();
 
+        enableDraggableMarkers();
         if(generateButtonClicked){
             const bounds = allCoordinates.reduce((bounds, coord) => {
                 return bounds.extend(coord);
@@ -363,7 +367,7 @@ async function calculateOptimizedRoute(generateButtonClicked=true) {
             let elevationGain = updateElevationProfile(lineData);
             routeDetails(route, elevationGain);
         });
-        routeType.isGenerated = true;
+        // routeType.isGenerated = true;
         endLoadingAnimation();
     } catch (error) {
         endLoadingAnimation();

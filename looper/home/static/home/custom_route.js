@@ -1,4 +1,4 @@
-import { getPlaceName, setDraggable, createGeocoder, initializeGeocoders, setGeocoder, initializeMarkerAndPopup, createMarker, replaceMarker } from './mapbox.js';
+import { calculateOptimizedRoute, setDraggable, createGeocoder, initializeGeocoders, setGeocoder, initializeMarkerAndPopup, createMarker, replaceMarker } from './mapbox.js';
 
 export class CustomRoute {
     
@@ -158,6 +158,7 @@ export class CustomRoute {
             additionalLocationInput.forEach(input => {
                 input.value = `${this.curAdditionalMarkerBuff["placeName"]}`
             });
+            calculateOptimizedRoute();
         }
         this.curGeocoder = null;
     }
