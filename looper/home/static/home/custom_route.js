@@ -4,7 +4,6 @@ export class CustomRoute {
     
     constructor(){
         this.markerList = []; // Replacement of markerMap 
-        
         this.curStartMarkerBuff = {}; // current start marker "candidate"
         this.curAdditionalMarkerBuff = {}; // current additional marker "candidate"
         this.form = document.getElementById('customRouteForm'); // form element of custom route

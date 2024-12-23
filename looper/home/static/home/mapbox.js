@@ -37,17 +37,26 @@ satelliteButton.addEventListener('click', function() {
     map.setStyle('mapbox://styles/mapbox/satellite-streets-v12');
     satelliteButton.style.display = 'none';
     streetButton.style.display = 'block';
+    map.once('styledata', function() {
+        if (routeType.isGenerated) {
+            addRouteToMap();
+        }
+    });
 });
+
 streetButton.addEventListener('click', function() {
     map.setStyle('mapbox://styles/mapbox/streets-v12');
     streetButton.style.display = 'none';
     satelliteButton.style.display = 'block';
+    map.once('styledata', function() {
+        if (routeType.isGenerated) {
+            addRouteToMap();
+        }
+    });
 });
 
 let routeType;
-
-const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+let routeCoordinates = [];
 
 // Script for selecting the type of route you want to create
 document.getElementById('randLoopButton').addEventListener('click', function() {
@@ -144,7 +153,7 @@ geolocateControl.on('geolocate', (event) => {
 // Script for location of clicked area on map
 map.on('click', (event) => {
     const coordinates = [event.lngLat.lng, event.lngLat.lat];
-    if (routeType && !routeType.isGenerated){
+    if (routeType){
         setMarker(coordinates);
     }
 });
@@ -265,6 +274,64 @@ function updateElevationProfile(lineData) {
     return elevationGain;
 }
 
+function addRouteToMap() {
+    let lineData = {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+            type: 'LineString',
+            coordinates: routeCoordinates
+        }
+    };
+
+    // Remove existing source and layers if they exist
+    if (map.getSource('route')) {
+        map.removeLayer('route');
+        map.removeLayer('arrows');
+        map.removeSource('route');
+    }
+
+    // Add the source and layers again
+    map.addSource('route', {
+        type: 'geojson',
+        data: lineData
+    });
+
+    map.addLayer({
+        id: 'route',
+        type: 'line',
+        source: 'route',
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': '#174ba6',
+            'line-width': 6.5
+        }
+    });
+
+    map.addLayer({
+        id: 'arrows',
+        type: 'symbol',
+        source: 'route',
+        layout: {
+            'symbol-placement': 'line',
+            'text-field': '▶',
+            'text-size': ['interpolate', ['linear'], ['zoom'], 12, 24, 22, 40],
+            'symbol-spacing': ['interpolate', ['linear'], ['zoom'], 12, 65, 22, 200],
+            'text-keep-upright': false
+        },
+        paint: {
+            'text-color': '#3887be',
+            'text-halo-color': 'hsl(55, 11%, 96%)',
+            'text-halo-width': 3
+        }
+    });
+    
+    return lineData;
+}
+
 // walkway bias is slowing the generation - may want to obsolete this parameter
 export async function calculateOptimizedRoute(generateButtonClicked=true) {
     if(generateButtonClicked){
@@ -295,7 +362,7 @@ export async function calculateOptimizedRoute(generateButtonClicked=true) {
         }, []);
 
         const route = data.routes[0];
-        const routeCoordinates = route.geometry.coordinates;
+        routeCoordinates = route.geometry.coordinates;
 
         // recursive call to calculateOptimizedRoute if the route is not within the distance margin
         if(routeType instanceof RandomLoop && generateButtonClicked){
@@ -318,57 +385,12 @@ export async function calculateOptimizedRoute(generateButtonClicked=true) {
                 linear: true,
             });
         }
-
-        let lineData = {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-                type: 'LineString',
-                coordinates: routeCoordinates
-            }
-        };
-
-        map.addSource('route', { 
-            type: 'geojson', 
-            data: lineData
-        });
-        map.addLayer({
-            id: 'route',
-            type: 'line',
-            source: 'route',
-            layout: {
-                'line-join': 'round',
-                'line-cap': 'round'
-            },
-            paint: {
-                'line-color': '#174ba6',
-                'line-width': 6.5
-            }
-        });
-        map.addLayer({  
-            id: 'arrows',  
-            type: 'symbol',  
-            source: 'route',  
-            layout: {  
-                'symbol-placement': 'line',  
-                'text-field': '▶',  
-                'text-size': ['interpolate', ['linear'], ['zoom'], 12, 24, 22, 40],  
-                'symbol-spacing': ['interpolate', ['linear'], ['zoom'], 12, 65, 22, 200],  
-                'text-keep-upright': false  
-            },  
-            paint: {  
-                'text-color': '#3887be',  
-                'text-halo-color': 'hsl(55, 11%, 96%)',  
-                'text-halo-width': 3  
-            }  
-            },  
-            'waterway-label'  
-        );
+        let lineData = addRouteToMap();
         map.once('moveend', function() {
             let elevationGain = updateElevationProfile(lineData);
             routeDetails(route, elevationGain);
         });
-        // routeType.isGenerated = true;
+        routeType.isGenerated = true;
         endLoadingAnimation();
     } catch (error) {
         endLoadingAnimation();
