@@ -35,15 +35,13 @@
           <div class="btn-group d-flex justify-content-center mx-3 my-2">
             <input id="randLoopButton" type="radio" name="options" class="btn-check"/>
             <label class="btn btn-primary p-0.2rem" for="randLoopButton" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Automatically Create a Randomized Looping Route">Randomize</label>
-
-
             <input id="customRouteButton" type="radio" name="options" class="btn-check"/>
             <label class="btn btn-primary p-0.2rem" for="customRouteButton"data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create a Fully Customizable Route From Scratch">Customize</label>
           </div>
 
           <div class="my-4">
-            <div class="universalFormItems mx-3 my-3 d-none" style="display: flex; column-gap: 3%;">
-              <div class="btn-group" style="width: 100%">
+            <div class="universalFormItems mx-3 my-3 d-none" style="display: grid; grid-template-columns: 50% 50%;">
+              <div class="btn-group">
                 <input class="btn-check" type="radio" name="exercise-options" id="runCheck" autocomplete="off" checked/>
                 <label class="btn btn-secondary btn-left" for="runCheck">
                   <img class="routeTypeImg" src="https://pass-the-baton.nyc3.digitaloceanspaces.com/assets/running.png" width="15" height="15">
@@ -72,7 +70,7 @@
                   <input type="range" class="form-range" min="0.45" max="0.95" step="0.05" id="distanceAccuracy">
                 </div>
               </div>
-              <div class="btn-group mb-4">
+              <div class="btn-group mb-4" style="display: grid; grid-template-columns: 50% 50%; width: 50%;">
                 <input class="btn-check" type="radio" name="routeRotation" id="clockwise" autocomplete="off" checked/>
                 <label class="btn btn-secondary btn-left" for="clockwise">Clockwise</label>
                 <input class="btn-check" type="radio" name="routeRotation" id="antiClockwise" autocomplete="off"/>

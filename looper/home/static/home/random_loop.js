@@ -1,9 +1,10 @@
-import { createGeocoder, setGeocoder, initializeMarkerAndPopup, createMarker } from './mapbox.js';
+import { createGeocoder, setGeocoder, initializeMarkerAndPopup, createMarker, removeExistingRouteLayer, replaceMarker } from './mapbox.js';
 
 export class RandomLoop{
 
     constructor(){
-        this.curStartMarkerBuff = {}; // current start marker "candidate"
+        this.curStartMarkerBuff = {}; // current start marker 
+        this.candidateStartMarkerBuff = {}; // current start marker candidate
         this.markerList = [];
         this.customRouteObj = null;
         this.distance; // distance of route
@@ -68,19 +69,36 @@ export class RandomLoop{
 
 
     setMarkerWithCorrectType(coordinates, placeName){
-        this.curStartMarkerBuff = initializeMarkerAndPopup(this.curStartMarkerBuff, coordinates, placeName, "starting");
+        if (!this.isGenerated){
+            this.curStartMarkerBuff = initializeMarkerAndPopup(this.curStartMarkerBuff, coordinates, placeName, "starting");
+        } 
+        else {
+            this.candidateStartMarkerBuff = initializeMarkerAndPopup(this.candidateStartMarkerBuff, coordinates, placeName, "starting");
+        }
     }
 
 
     saveMarker(eventClass){
         if (eventClass.contains('startingPoint')) {
             const startingLocationInputs = this.form.querySelectorAll('.startingLocation');
-            startingLocationInputs.forEach(input => {
-                input.value = `${this.curStartMarkerBuff['placeName']}`
-            });
-            this.curStartMarkerBuff['marker'].togglePopup();
-            this.clearMarkers();
-            this.markerList.push(this.curStartMarkerBuff);
+            if (!this.isGenerated){
+                startingLocationInputs.forEach(input => {
+                    input.value = `${this.curStartMarkerBuff['placeName']}`
+                });
+                this.curStartMarkerBuff['marker'].togglePopup();
+                this.clearMarkers();
+                this.markerList.push(this.curStartMarkerBuff);
+            } 
+            else {
+                const marker = createMarker(this.candidateStartMarkerBuff["coordinates"], this.candidateStartMarkerBuff["placeName"]);
+                this.curStartMarkerBuff = replaceMarker(this.curStartMarkerBuff, this.candidateStartMarkerBuff, marker);
+                startingLocationInputs.forEach(input => {
+                    input.value = `${this.curStartMarkerBuff['placeName']}`
+                });
+                this.clearMarkers();
+                this.markerList[0] = this.curStartMarkerBuff;
+                removeExistingRouteLayer();
+            }
         }
     }
 
@@ -259,6 +277,10 @@ export class RandomLoop{
         if(this.curStartMarkerBuff['marker']){
             this.curStartMarkerBuff['marker'].remove();
             this.curStartMarkerBuff = {};
+        }
+        if(this.candidateStartMarkerBuff['marker']){
+            this.candidateStartMarkerBuff['marker'].remove();
+            this.candidateStartMarkerBuff = {};
         }
         this.isGenerated = false;
         this.clearMarkers();

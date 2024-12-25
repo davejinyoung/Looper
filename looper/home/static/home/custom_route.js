@@ -157,7 +157,7 @@ export class CustomRoute {
             additionalLocationInput.forEach(input => {
                 input.value = `${this.curAdditionalMarkerBuff["placeName"]}`
             });
-            calculateOptimizedRoute();
+            calculateOptimizedRoute(false);
         }
         this.curGeocoder = null;
     }

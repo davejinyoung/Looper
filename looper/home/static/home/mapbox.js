@@ -22,6 +22,13 @@ map.on('style.load', () => {
     map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
 });
 
+document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+});
+
 var streetButton = document.createElement('streetButton');
 streetButton.id = 'street-button';
 streetButton.innerHTML = 'Street View';
@@ -117,7 +124,7 @@ function showForm(selectedForm) {
     if(selectedForm){
         selectedForm.classList.remove('d-none');
     }
-    document.querySelectorAll(".c").forEach(form => {
+    document.querySelectorAll(".universalFormItems").forEach(form => {
         form.classList.remove('d-none');
     });
     routeType.createInitialGeocoders(); 
@@ -181,11 +188,22 @@ document.body.addEventListener('click', function(event) {
 });
 
 
-document.getElementById('generateRoute').addEventListener('click', function(event) {
-    calculateOptimizedRoute();
-});
+// Function to add event listeners to multiple elements
+function addEventListenersToElements(eventType, elements) {
+    elements.forEach(element => {
+        element['element'].addEventListener(eventType, element['handler']);
+    });
+}
 
-// fix when on geocoder and press enter for suggested values
+// Elements to attach the event listener to
+const elementsToAttach = [
+    {'element': document.getElementById('generateRoute'), 'handler': () => calculateOptimizedRoute()},
+    {'element': document.getElementById('runCheck'), 'handler': () => calculateOptimizedRoute(false)},
+    {'element': document.getElementById('bikeCheck'), 'handler': () => calculateOptimizedRoute(false)},
+];
+
+addEventListenersToElements('click', elementsToAttach);
+
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Enter') {
         event.preventDefault();
@@ -285,11 +303,7 @@ function addRouteToMap() {
     };
 
     // Remove existing source and layers if they exist
-    if (map.getSource('route')) {
-        map.removeLayer('route');
-        map.removeLayer('arrows');
-        map.removeSource('route');
-    }
+    removeExistingRouteLayer();
 
     // Add the source and layers again
     map.addSource('route', {
@@ -402,7 +416,7 @@ export async function calculateOptimizedRoute(generateButtonClicked=true) {
     }
 }
 
-function removeExistingRouteLayer(){
+export function removeExistingRouteLayer(){
     if(map.getSource('route') != null && map.getLayer('route') != null && map.getLayer('arrows') != null){
         map.removeLayer('route');
         map.removeLayer('arrows');
@@ -486,7 +500,7 @@ function clearForm(){
        field.value = '';
     });
     removeExistingRouteLayer();
-    const routeDetails = document.querySelector('.route-details-elements').classList.add("d-none");
+    document.querySelector('.route-details-elements').classList.add("d-none");
 }
 
 
@@ -620,8 +634,4 @@ export function replaceMarker(markerDict, markerBuffDict, newMarker){
     }
     markerDict = {'marker': newMarker, 'coordinates' : markerBuffDict["coordinates"], 'placeName': markerBuffDict["placeName"]};
     return markerDict;
-}
-
-export function retrieveSavedRoute(markerDict, markerBuffDict, newMarker){
-    var test = 10;
 }
