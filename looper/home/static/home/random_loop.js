@@ -1,4 +1,4 @@
-import { createGeocoder, setGeocoder, initializeMarkerAndPopup, createMarker, removeExistingRouteLayer, replaceMarker } from './mapbox.js';
+import { createGeocoder, setGeocoder, initializeMarkerAndPopup, createMarker, removeExistingRouteLayer, replaceMarker, setDraggable, getPlaceName } from './mapbox.js';
 
 export class RandomLoop{
 
@@ -207,7 +207,19 @@ export class RandomLoop{
             }
             let randWaypoint = this.inverseHaversine(basePoint['coordinates'], legDistances[i]/earthRadius, this.toRadians(angle));
             let newCoords = [randWaypoint['lng'], randWaypoint['lat']];
-            let markerDict = {'marker': createMarker(newCoords, null, null, false), 'coordinates': newCoords, 'placeName': ''};
+            let newMarker = createMarker(newCoords, null, null, false);
+            let markerDict = {'marker': newMarker, 'coordinates': newCoords, 'placeName': ''};
+
+            getPlaceName(newCoords)
+                .then(placeName => {
+                    markerDict['placeName'] = placeName;
+                    this.updateLocationForm(newMarker, placeName);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+
+            setDraggable(newMarker, markerDict);
             waypoints.push(markerDict);
             basePoint['coordinates'] = newCoords;
             basePoint['angle'] += legAngles[i];
