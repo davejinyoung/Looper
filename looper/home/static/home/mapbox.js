@@ -64,6 +64,7 @@ streetButton.addEventListener('click', function() {
 
 let routeType;
 let routeCoordinates = [];
+let popupEventHandled = false;
 
 // Script for selecting the type of route you want to create
 document.getElementById('randLoopButton').addEventListener('click', function() {
@@ -159,21 +160,21 @@ geolocateControl.on('geolocate', (event) => {
 
 // Script for location of clicked area on map
 map.on('click', (event) => {
+    if (popupEventHandled) {
+        popupEventHandled = false;
+        return;
+    }
+
     const coordinates = [event.lngLat.lng, event.lngLat.lat];
     if (routeType){
         setMarker(coordinates);
     }
 });
 
-function setMarker(coordinates, marker) {
+function setMarker(coordinates) {
     getPlaceName(coordinates)
         .then(placeName => {
-            if(marker == null){
-                routeType.setMarkerWithCorrectType(coordinates, placeName);
-            }
-            else {
-                routeType.updateLocationForm(marker, placeName);
-            }
+            routeType.setMarkerWithCorrectType(coordinates, placeName);
         })
         .catch(error => {
             console.error('Error:', error);
@@ -390,6 +391,15 @@ export async function calculateOptimizedRoute(generateButtonClicked=true) {
         }
 
         enableDraggableMarkers();
+        // Add event listeners to markers
+        const markers = document.querySelectorAll('.mapboxgl-marker');
+            markers.forEach(marker => {
+                marker.addEventListener('click', function () {
+                    console.log('Marker clicked');
+                    // Add your custom logic here
+                    popupEventHandled = true;
+                });
+            });
         if(generateButtonClicked){
             const bounds = allCoordinates.reduce((bounds, coord) => {
                 return bounds.extend(coord);

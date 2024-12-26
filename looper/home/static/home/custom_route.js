@@ -101,14 +101,7 @@ export class CustomRoute {
             this.curStartMarkerBuff = initializeMarkerAndPopup(this.curStartMarkerBuff, coordinates, placeName, "starting");
         }
         else {
-            if(this.curAdditionalMarkerBuff["marker"] != null){
-                this.curAdditionalMarkerBuff["marker"].remove();
-                this.curAdditionalMarkerBuff = {};
-            }
-            this.curAdditionalMarkerBuff["marker"] = createMarker(coordinates, placeName, "additional");
-            this.curAdditionalMarkerBuff["marker"].togglePopup();
-            this.curAdditionalMarkerBuff["coordinates"] = coordinates;
-            this.curAdditionalMarkerBuff["placeName"] = placeName;
+            this.curAdditionalMarkerBuff = initializeMarkerAndPopup(this.curAdditionalMarkerBuff, coordinates, placeName, "additional");
         }
     }
 
