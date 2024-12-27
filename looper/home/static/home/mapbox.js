@@ -369,13 +369,13 @@ export async function calculateOptimizedRoute(generateButtonClicked=true) {
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
+
         const data = await response.json();
         removeExistingRouteLayer();
         const routes = data.routes;
         const allCoordinates = routes.reduce((acc, route) => {
             return acc.concat(route.geometry.coordinates);
         }, []);
-
         const route = data.routes[0];
         routeCoordinates = route.geometry.coordinates;
 
@@ -389,17 +389,15 @@ export async function calculateOptimizedRoute(generateButtonClicked=true) {
             }
             addMarkersToMap();
         }
-
         enableDraggableMarkers();
-        // Add event listeners to markers
+
         const markers = document.querySelectorAll('.mapboxgl-marker');
             markers.forEach(marker => {
                 marker.addEventListener('click', function () {
-                    console.log('Marker clicked');
-                    // Add your custom logic here
                     popupEventHandled = true;
                 });
             });
+
         if(generateButtonClicked){
             const bounds = allCoordinates.reduce((bounds, coord) => {
                 return bounds.extend(coord);
@@ -409,11 +407,10 @@ export async function calculateOptimizedRoute(generateButtonClicked=true) {
                 linear: true,
             });
         }
+
         let lineData = addRouteToMap();
-        map.once('moveend', function() {
-            let elevationGain = updateElevationProfile(lineData);
-            routeDetails(route, elevationGain);
-        });
+        let elevationGain = updateElevationProfile(lineData);
+        routeDetails(route, elevationGain);
         routeType.isGenerated = true;
         endLoadingAnimation();
     } catch (error) {
