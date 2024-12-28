@@ -12,6 +12,10 @@ export class CustomRoute {
         this.curGeocoder;
         this.additionalGeocoders = []; // might want to change this name to allGeocoders since it includes the starting Geocoder
         this.countAdditionalLocations = 0;
+        this.returnButton = 
+            `<div class="d-flex justify-content-center">
+                <button type="button" class="popupButton btn btn-success startingPointLoop">Return to Starting Point</button>
+            </div>`;
     }
 
 
@@ -108,13 +112,13 @@ export class CustomRoute {
 
     saveMarker(eventClass){
         if (eventClass.contains('startingPoint')) {
-            const marker = createMarker(this.curStartMarkerBuff["coordinates"], this.curStartMarkerBuff["placeName"]);
-
             if(this.curGeocoder == this.startingGeocoder){
+                const marker = createMarker(this.curStartMarkerBuff["coordinates"], this.curStartMarkerBuff["placeName"]);
                 this.markerList[0] = replaceMarker(this.markerList[0], this.curStartMarkerBuff, marker);
                 setDraggable(marker, this.markerList[0]);
             }
             else if(!this.isGenerated) {
+                const marker = createMarker(this.curStartMarkerBuff["coordinates"], this.curStartMarkerBuff["placeName"], null, true, this.returnButton);
                 let markerValues = {'marker': marker, 'coordinates' : this.curStartMarkerBuff["coordinates"], placeName: this.curStartMarkerBuff["placeName"]};
                 this.markerList.push(markerValues);
                 setDraggable(marker, this.markerList[0]);
@@ -158,7 +162,16 @@ export class CustomRoute {
 
     updateLocationForm(marker, placeName){
         let locationInput = this.getGeocoderBasedOnMarkerOrder(marker);
-        marker.setPopup(new mapboxgl.Popup().setHTML(`<p>${placeName}</p>`))
+        const isStarting = locationInput?.[0]?.classList.contains('startingLocation');
+        const returnButton = isStarting ? this.returnButton : '';
+
+        marker.setPopup(new mapboxgl.Popup().setHTML(
+            `<div class="center">
+                <p style="font-size:0.8rem">${placeName}</p>
+            </div>
+            ${returnButton}`
+        ))
+
         locationInput.forEach(input => {
             input.value = `${placeName}`;
         });

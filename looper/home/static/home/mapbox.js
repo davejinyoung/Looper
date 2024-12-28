@@ -181,13 +181,20 @@ function setMarker(coordinates) {
         });
 }
 
-
+// Script for handling popup button click events
 document.body.addEventListener('click', function(event) {
     if (routeType && (event.target.classList.contains('popupButton'))){
         routeType.saveMarker(event.target.classList);
     }
 });
 
+// Custom route return to starting point button listener
+document.body.addEventListener('click', function(event) {
+    if (routeType instanceof CustomRoute && event.target.classList.contains('startingPointLoop')){
+        routeType.markerList.push(routeType.markerList[0]);
+        calculateOptimizedRoute(false);
+    }   
+});
 
 // Function to add event listeners to multiple elements
 function addEventListenersToElements(eventType, elements) {
@@ -321,7 +328,7 @@ function addRouteToMap() {
             'line-cap': 'round'
         },
         paint: {
-            'line-color': '#174ba6',
+            'line-color': '#00b5ad',
             'line-width': 6.5
         }
     });
@@ -609,9 +616,14 @@ export function initializeMarkerAndPopup(curMarkerBuff, coordinates, placeName, 
 }
 
 
-export function createMarker(coordinates, placeName, markerType, addToMap=true){
+export function createMarker(coordinates, placeName, markerType, addToMap=true, popupContent=""){
     let address = placeName != null ? placeName.replace(/^([^,]*,[^,]*).*/, '$1') : "";
-    let popup = placeName != null ? new mapboxgl.Popup().setHTML(`<p>${address}</p>`) : new mapboxgl.Popup();
+    let popup = placeName != null ? new mapboxgl.Popup().setHTML(
+        `<div class="center">
+            <p style="font-size:0.8rem">${address}</p>
+        </div>
+        ${popupContent}`
+    ) : new mapboxgl.Popup();
     if(markerType != null){
         popup = new mapboxgl.Popup().setHTML(`
             <div class="center">
@@ -620,7 +632,6 @@ export function createMarker(coordinates, placeName, markerType, addToMap=true){
             <div class="d-flex justify-content-center">
                 <button type="button" class="popupButton btn btn-success ${markerType}Point">Set ${capitalize(markerType)} Point</button>
             </div>
-            
         `);
     }
     let marker = new mapboxgl.Marker()
