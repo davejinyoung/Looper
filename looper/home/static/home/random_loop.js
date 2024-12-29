@@ -1,4 +1,4 @@
-import { createGeocoder, setGeocoder, initializeMarkerAndPopup, createMarker, removeExistingRouteLayer, replaceMarker, setDraggable, getPlaceName, createPopup } from './mapbox.js';
+import { createGeocoder, setGeocoder, initializeMarkerAndPopup, createMarker, removeExistingRouteLayer, replaceMarker, setDraggable, getPlaceName, createPopup, addPopupCloseButtonListener } from './mapbox.js';
 
 export class RandomLoop{
 
@@ -71,6 +71,7 @@ export class RandomLoop{
     setMarkerWithCorrectType(coordinates, placeName){
         if (!this.isGenerated){
             this.curStartMarkerBuff = initializeMarkerAndPopup(this.curStartMarkerBuff, coordinates, placeName, "starting");
+            addPopupCloseButtonListener(this.curStartMarkerBuff);
         } 
         else {
             this.candidateStartMarkerBuff = initializeMarkerAndPopup(this.candidateStartMarkerBuff, coordinates, placeName, "starting");

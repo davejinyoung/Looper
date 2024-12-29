@@ -646,6 +646,17 @@ export function createPopup(placeName, markerType){
 }
 
 
+export function addPopupCloseButtonListener(curMarkerBuff) {
+    let popup = curMarkerBuff["marker"].getPopup();
+    const closeButton = popup.getElement().querySelector('.mapboxgl-popup-close-button');
+    if (closeButton) {
+        closeButton.addEventListener('click', () => {
+            curMarkerBuff["marker"].remove();
+        });
+    }
+}
+
+
 export function createMarker(coordinates, placeName, markerType, addToMap=true){
     let popup = createPopup(placeName, markerType);
     let marker = new mapboxgl.Marker()
@@ -656,7 +667,7 @@ export function createMarker(coordinates, placeName, markerType, addToMap=true){
         marker.addTo(map);
     }
     setPopupListenersForMarkers(document.querySelectorAll('.mapboxgl-marker'));
-    return marker
+    return marker;
 }
 
 

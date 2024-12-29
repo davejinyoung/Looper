@@ -1,4 +1,4 @@
-import { calculateOptimizedRoute, setDraggable, createGeocoder, initializeGeocoders, setGeocoder, initializeMarkerAndPopup, createMarker, replaceMarker, createPopup } from './mapbox.js';
+import { calculateOptimizedRoute, setDraggable, createGeocoder, initializeGeocoders, setGeocoder, initializeMarkerAndPopup, createMarker, replaceMarker, createPopup, addPopupCloseButtonListener} from './mapbox.js';
 
 export class CustomRoute {
     
@@ -96,12 +96,14 @@ export class CustomRoute {
     }
 
 
-    setMarkerWithCorrectType(coordinates, placeName){
+    setMarkerWithCorrectType(coordinates, placeName) {
         if (this.#isStartingMarker()) {
             this.curStartMarkerBuff = initializeMarkerAndPopup(this.curStartMarkerBuff, coordinates, placeName, "starting");
+            addPopupCloseButtonListener(this.curStartMarkerBuff);
         }
         else {
             this.curAdditionalMarkerBuff = initializeMarkerAndPopup(this.curAdditionalMarkerBuff, coordinates, placeName, "additional");
+            addPopupCloseButtonListener(this.curAdditionalMarkerBuff);
         }
     }
 
