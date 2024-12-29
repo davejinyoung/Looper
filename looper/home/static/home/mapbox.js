@@ -64,7 +64,7 @@ streetButton.addEventListener('click', function() {
 
 let routeType;
 let routeCoordinates = [];
-let popupEventHandled = false;
+let popupEvent = false;
 
 // Script for selecting the type of route you want to create
 document.getElementById('randLoopButton').addEventListener('click', function() {
@@ -160,11 +160,10 @@ geolocateControl.on('geolocate', (event) => {
 
 // Script for location of clicked area on map
 map.on('click', (event) => {
-    if (popupEventHandled) {
-        popupEventHandled = false;
+    if (popupEvent) {
+        popupEvent = false;
         return;
     }
-
     const coordinates = [event.lngLat.lng, event.lngLat.lat];
     if (routeType){
         setMarker(coordinates);
@@ -191,7 +190,10 @@ document.body.addEventListener('click', function(event) {
 // Custom route return to starting point button listener
 document.body.addEventListener('click', function(event) {
     if (routeType instanceof CustomRoute && event.target.classList.contains('startingPointLoop')){
-        routeType.markerList.push(routeType.markerList[0]);
+        let startingPointMarkerDict = routeType.markerList[0];
+        routeType.markerList.push(startingPointMarkerDict);
+        startingPointMarkerDict["marker"].togglePopup();
+        startingPointMarkerDict["marker"].setPopup(createPopup(startingPointMarkerDict["placeName"]));
         calculateOptimizedRoute(false);
     }   
 });
@@ -401,7 +403,7 @@ export async function calculateOptimizedRoute(generateButtonClicked=true) {
         const markers = document.querySelectorAll('.mapboxgl-marker');
             markers.forEach(marker => {
                 marker.addEventListener('click', function () {
-                    popupEventHandled = true;
+                    popupEvent = true;
                 });
             });
 
@@ -616,24 +618,34 @@ export function initializeMarkerAndPopup(curMarkerBuff, coordinates, placeName, 
 }
 
 
-export function createMarker(coordinates, placeName, markerType, addToMap=true, popupContent=""){
+export function createPopup(placeName, markerType){
     let address = placeName != null ? placeName.replace(/^([^,]*,[^,]*).*/, '$1') : "";
-    let popup = placeName != null ? new mapboxgl.Popup().setHTML(
+    let popupButtonContent = '';
+
+    if (markerType == "starting" || markerType == "additional") {
+        popupButtonContent = 
+            `<div class="d-flex justify-content-center">
+                <button type="button" class="popupButton btn btn-success ${markerType}Point">Set ${capitalize(markerType)} Point</button>
+            </div>`;
+    }
+    else if (markerType == "returnToStart") {
+        popupButtonContent = 
+            `<div class="d-flex justify-content-center">
+                <button type="button" class="popupButton btn btn-success startingPointLoop">Return to Starting Point</button>
+            </div>`;
+    }
+
+    let popupContent = 
         `<div class="center">
             <p style="font-size:0.8rem">${address}</p>
-        </div>
-        ${popupContent}`
-    ) : new mapboxgl.Popup();
-    if(markerType != null){
-        popup = new mapboxgl.Popup().setHTML(`
-            <div class="center">
-                <p style="font-size:0.8rem">${address}</p>
-            </div>
-            <div class="d-flex justify-content-center">
-                <button type="button" class="popupButton btn btn-success ${markerType}Point">Set ${capitalize(markerType)} Point</button>
-            </div>
-        `);
-    }
+        </div>` + popupButtonContent;
+
+    return new mapboxgl.Popup().setHTML(popupContent);
+}
+
+
+export function createMarker(coordinates, placeName, markerType, addToMap=true){
+    let popup = createPopup(placeName, markerType);
     let marker = new mapboxgl.Marker()
         .setLngLat(coordinates)
         .setPopup(popup);

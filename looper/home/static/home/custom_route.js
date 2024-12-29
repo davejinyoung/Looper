@@ -1,4 +1,4 @@
-import { calculateOptimizedRoute, setDraggable, createGeocoder, initializeGeocoders, setGeocoder, initializeMarkerAndPopup, createMarker, replaceMarker } from './mapbox.js';
+import { calculateOptimizedRoute, setDraggable, createGeocoder, initializeGeocoders, setGeocoder, initializeMarkerAndPopup, createMarker, replaceMarker, createPopup } from './mapbox.js';
 
 export class CustomRoute {
     
@@ -12,10 +12,6 @@ export class CustomRoute {
         this.curGeocoder;
         this.additionalGeocoders = []; // might want to change this name to allGeocoders since it includes the starting Geocoder
         this.countAdditionalLocations = 0;
-        this.returnButton = 
-            `<div class="d-flex justify-content-center">
-                <button type="button" class="popupButton btn btn-success startingPointLoop">Return to Starting Point</button>
-            </div>`;
     }
 
 
@@ -118,7 +114,7 @@ export class CustomRoute {
                 setDraggable(marker, this.markerList[0]);
             }
             else if(!this.isGenerated) {
-                const marker = createMarker(this.curStartMarkerBuff["coordinates"], this.curStartMarkerBuff["placeName"], null, true, this.returnButton);
+                const marker = createMarker(this.curStartMarkerBuff["coordinates"], this.curStartMarkerBuff["placeName"]);
                 let markerValues = {'marker': marker, 'coordinates' : this.curStartMarkerBuff["coordinates"], placeName: this.curStartMarkerBuff["placeName"]};
                 this.markerList.push(markerValues);
                 setDraggable(marker, this.markerList[0]);
@@ -134,6 +130,8 @@ export class CustomRoute {
 
         else if (eventClass.contains('additionalPoint')) {
             const marker = createMarker(this.curAdditionalMarkerBuff["coordinates"], this.curAdditionalMarkerBuff["placeName"]);
+            let popup = createPopup(this.curAdditionalMarkerBuff["placeName"], "returnToStart");
+            this.markerList[0]["marker"].setPopup(popup)
             let geocoderOrder = null;
             if(this.markerList.length >= 2 && this.curGeocoder != null && this.additionalGeocoders[this.additionalGeocoders.length - 1] != this.curGeocoder) {
                 let curAdditionalMarkerDict = this.getMarkerDictBasedOnGeocoderOrder(this.curGeocoder);
@@ -163,14 +161,9 @@ export class CustomRoute {
     updateLocationForm(marker, placeName){
         let locationInput = this.getGeocoderBasedOnMarkerOrder(marker);
         const isStarting = locationInput?.[0]?.classList.contains('startingLocation');
-        const returnButton = isStarting ? this.returnButton : '';
-
-        marker.setPopup(new mapboxgl.Popup().setHTML(
-            `<div class="center">
-                <p style="font-size:0.8rem">${placeName}</p>
-            </div>
-            ${returnButton}`
-        ))
+        const markerType = isStarting ? "returnToStart" : null;
+        let popup = createPopup(this.curAdditionalMarkerBuff["placeName"], markerType);
+        marker.setPopup(popup)
 
         locationInput.forEach(input => {
             input.value = `${placeName}`;
