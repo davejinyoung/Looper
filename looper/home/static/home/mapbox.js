@@ -180,6 +180,14 @@ function setMarker(coordinates) {
         });
 }
 
+function setPopupListenersForMarkers(markers) {
+    markers.forEach(marker => {
+        marker.addEventListener('click', function () {
+            popupEvent = true;
+        });
+    });
+}
+
 // Script for handling popup button click events
 document.body.addEventListener('click', function(event) {
     if (routeType && (event.target.classList.contains('popupButton'))){
@@ -399,13 +407,7 @@ export async function calculateOptimizedRoute(generateButtonClicked=true) {
             addMarkersToMap();
         }
         enableDraggableMarkers();
-
-        const markers = document.querySelectorAll('.mapboxgl-marker');
-            markers.forEach(marker => {
-                marker.addEventListener('click', function () {
-                    popupEvent = true;
-                });
-            });
+        setPopupListenersForMarkers(document.querySelectorAll('.mapboxgl-marker'));
 
         if(generateButtonClicked){
             const bounds = allCoordinates.reduce((bounds, coord) => {
@@ -653,6 +655,7 @@ export function createMarker(coordinates, placeName, markerType, addToMap=true){
     if(addToMap){
         marker.addTo(map);
     }
+    setPopupListenersForMarkers(document.querySelectorAll('.mapboxgl-marker'));
     return marker
 }
 

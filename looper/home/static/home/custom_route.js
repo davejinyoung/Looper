@@ -129,9 +129,10 @@ export class CustomRoute {
         }
 
         else if (eventClass.contains('additionalPoint')) {
-            const marker = createMarker(this.curAdditionalMarkerBuff["coordinates"], this.curAdditionalMarkerBuff["placeName"]);
-            let popup = createPopup(this.curAdditionalMarkerBuff["placeName"], "returnToStart");
+            let popup = createPopup(this.curStartMarkerBuff["placeName"], "returnToStart");
             this.markerList[0]["marker"].setPopup(popup)
+
+            const marker = createMarker(this.curAdditionalMarkerBuff["coordinates"], this.curAdditionalMarkerBuff["placeName"]);
             let geocoderOrder = null;
             if(this.markerList.length >= 2 && this.curGeocoder != null && this.additionalGeocoders[this.additionalGeocoders.length - 1] != this.curGeocoder) {
                 let curAdditionalMarkerDict = this.getMarkerDictBasedOnGeocoderOrder(this.curGeocoder);

@@ -1,4 +1,4 @@
-import { createGeocoder, setGeocoder, initializeMarkerAndPopup, createMarker, removeExistingRouteLayer, replaceMarker, setDraggable, getPlaceName } from './mapbox.js';
+import { createGeocoder, setGeocoder, initializeMarkerAndPopup, createMarker, removeExistingRouteLayer, replaceMarker, setDraggable, getPlaceName, createPopup } from './mapbox.js';
 
 export class RandomLoop{
 
@@ -85,7 +85,8 @@ export class RandomLoop{
                 startingLocationInputs.forEach(input => {
                     input.value = `${this.curStartMarkerBuff['placeName']}`
                 });
-                this.curStartMarkerBuff['marker'].togglePopup();
+                let popup = createPopup(this.curStartMarkerBuff["placeName"]);
+                this.curStartMarkerBuff["marker"].setPopup(popup);
                 this.clearMarkers();
                 this.markerList.push(this.curStartMarkerBuff);
             } 
