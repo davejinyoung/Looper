@@ -163,11 +163,6 @@ export class CustomRoute {
 
     updateLocationForm(marker, placeName){
         let locationInput = this.getGeocoderBasedOnMarkerOrder(marker);
-        const isStarting = locationInput?.[0]?.classList.contains('startingLocation');
-        const markerType = isStarting ? "returnToStart" : null;
-        let popup = createPopup(this.curAdditionalMarkerBuff["placeName"], markerType);
-        marker.setPopup(popup)
-
         locationInput.forEach(input => {
             input.value = `${placeName}`;
         });
