@@ -88,6 +88,7 @@ export class RandomLoop{
                 });
                 let popup = createPopup(this.curStartMarkerBuff["placeName"]);
                 this.curStartMarkerBuff["marker"].setPopup(popup);
+                setDraggable(this.curStartMarkerBuff["marker"], this.curStartMarkerBuff);
                 this.clearMarkers();
                 this.markerList.push(this.curStartMarkerBuff);
             } 
@@ -112,8 +113,9 @@ export class RandomLoop{
     }
 
     updateLocationForm(marker, placeName){
-        marker.setPopup(new mapboxgl.Popup().setHTML(`<p>${placeName}</p>`))
-        if(marker == this.markerList[0]['marker']){
+        let popup = createPopup(placeName);
+        marker.setPopup(popup)
+        if(marker == this.curStartMarkerBuff['marker']){
             const allForms = document.querySelectorAll('form');
             allForms.forEach(form => {
                 const startingLocationInputs = form.querySelectorAll('.startingLocation');
@@ -216,6 +218,8 @@ export class RandomLoop{
                 .then(placeName => {
                     markerDict['placeName'] = placeName;
                     this.updateLocationForm(newMarker, placeName);
+                    let popup = createPopup(placeName);
+                    newMarker.setPopup(popup);
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -266,6 +270,7 @@ export class RandomLoop{
         if(generateButtonClicked){
             this.clearMarkers();
             this.curStartMarkerBuff['marker'] = createMarker(this.curStartMarkerBuff['coordinates'], this.curStartMarkerBuff['placeName']);
+            setDraggable(this.curStartMarkerBuff['marker'], this.curStartMarkerBuff);
             this.markerList.push(this.curStartMarkerBuff);
             this.markerList = this.markerList.concat(this.getRandomWaypoints(this.curStartMarkerBuff['coordinates']));
         }
