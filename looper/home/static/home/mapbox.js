@@ -128,8 +128,7 @@ function showForm(selectedForm) {
     document.querySelectorAll(".universalFormItems").forEach(form => {
         form.classList.remove('d-none');
     });
-    routeType.createInitialGeocoders(); 
-    initializeGeocoders(routeType.allGeocoders);
+    setGeocoder();
 }
 
 // Script for finding current location
@@ -434,14 +433,6 @@ export async function calculateOptimizedRoute(generateButtonClicked=true) {
     }
 }
 
-export function removeExistingRouteLayer(){
-    if(map.getSource('route') != null && map.getLayer('route') != null && map.getLayer('arrows') != null){
-        map.removeLayer('route');
-        map.removeLayer('arrows');
-        map.removeSource('route');
-    }
-}
-
 function startLoadingAnimation(){
     const loadingAnimation = document.getElementById('loadingAnimation');
     if(loadingAnimation.classList.contains('d-none')){ 
@@ -522,25 +513,12 @@ function clearForm(){
 }
 
 
-function capitalize(s)
-{
+function capitalize(s) {
     return s[0].toUpperCase() + s.slice(1);
 }
 
 
 // functions that are being exported. Mostly serves the purpose of random shared helper functions 
-
-export function initializeGeocoders(geocoderList){
-    geocoderList.forEach(geocoder => {
-        geocoder.on('result', (event) => {
-            const coordinates = event.result.geometry.coordinates;
-            setMarker(coordinates);
-            routeType.curGeocoder = geocoder;
-        });
-    });
-}
-
-
 export function getPlaceName(coordinates) {
     return new Promise((resolve, reject) => {
         let request = new XMLHttpRequest();
@@ -561,7 +539,7 @@ export function getPlaceName(coordinates) {
 }
 
 
-export function setDraggable(marker, markerDict){
+export function setDraggable(marker, markerDict) {
     marker.setDraggable(true);
     marker.on('dragend', () => {
         const coordinates = [marker.getLngLat().lng, marker.getLngLat().lat];
@@ -581,33 +559,27 @@ export function setDraggable(marker, markerDict){
 }
 
 
-export function createGeocoder(geocoderLocation){
+function setGeocoder() {
     let geocoder = new MapboxGeocoder({
         accessToken: mapboxgl.accessToken,
         mapboxgl: mapboxgl,
         reverseGeocode: true,
         marker: false,
-        placeholder: `Enter ${geocoderLocation} Address or Set Point on the Map`
+        placeholder: `Enter an Address or Set a Point on the Map`
     });
-    return geocoder; 
-}
-
-
-export function setGeocoder(geocoder, geocoderLocation){
-    let geocoderSection = routeType.form.querySelector(".geocoders");
-    if(geocoderSection.querySelector(`.mapboxgl-ctrl-geocoder .${geocoderLocation}`) == null){
+    let geocoderSection = routeType.form.querySelector(".geocoder");
+    if(geocoderSection.querySelector('.mapboxgl-ctrl-geocoder') == null){
         let geocoderElement = geocoder.onAdd(map);
         geocoderSection.appendChild(geocoderElement);
-        geocoderElement.classList.add(`${geocoderLocation}`, 'mb-3');
-        geocoderElement.querySelector('.mapboxgl-ctrl-geocoder--input').classList.add(`${geocoderLocation}`);
-        geocoderElement.addEventListener('click', function(){
-            routeType.stackCurrentGeocoderTop(geocoder);
-        });
     }
+    geocoder.on('result', (event) => {
+        const coordinates = event.result.geometry.coordinates;
+        setMarker(coordinates);
+    });
 }
 
 
-export function initializeMarkerAndPopup(curMarkerBuff, coordinates, placeName, markerType){
+export function initializeMarkerAndPopup(curMarkerBuff, coordinates, placeName, markerType) {
     if(curMarkerBuff["marker"] != null){
         curMarkerBuff["marker"].remove();
         curMarkerBuff = {};
@@ -620,7 +592,7 @@ export function initializeMarkerAndPopup(curMarkerBuff, coordinates, placeName, 
 }
 
 
-export function createPopup(placeName, markerType){
+export function createPopup(placeName, markerType) {
     let address = placeName != null ? placeName.replace(/^([^,]*,[^,]*).*/, '$1') : "";
     let popupButtonContent = '';
 
@@ -657,7 +629,7 @@ export function addPopupCloseButtonListener(curMarkerBuff) {
 }
 
 
-export function createMarker(coordinates, placeName, markerType, addToMap=true){
+export function createMarker(coordinates, placeName, markerType, addToMap=true) {
     let popup = createPopup(placeName, markerType);
     let marker = new mapboxgl.Marker()
         .setLngLat(coordinates)
@@ -671,11 +643,20 @@ export function createMarker(coordinates, placeName, markerType, addToMap=true){
 }
 
 
-export function replaceMarker(markerDict, markerBuffDict, newMarker){
+export function replaceMarker(markerDict, markerBuffDict, newMarker) {
     markerBuffDict['marker'].remove();
     if (markerDict != null){
         markerDict['marker'].remove();
     }
     markerDict = {'marker': newMarker, 'coordinates' : markerBuffDict["coordinates"], 'placeName': markerBuffDict["placeName"]};
     return markerDict;
+}
+
+
+export function removeExistingRouteLayer(){
+    if(map.getSource('route') != null && map.getLayer('route') != null && map.getLayer('arrows') != null){
+        map.removeLayer('route');
+        map.removeLayer('arrows');
+        map.removeSource('route');
+    }
 }

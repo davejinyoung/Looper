@@ -1,4 +1,4 @@
-import { calculateOptimizedRoute, setDraggable, createGeocoder, initializeGeocoders, setGeocoder, initializeMarkerAndPopup, createMarker, replaceMarker, createPopup, addPopupCloseButtonListener} from './mapbox.js';
+import { calculateOptimizedRoute, setDraggable, initializeMarkerAndPopup, createMarker, replaceMarker, createPopup, addPopupCloseButtonListener} from './mapbox.js';
 
 export class CustomRoute {
     
@@ -8,9 +8,6 @@ export class CustomRoute {
         this.curAdditionalMarkerBuff = {}; // current additional marker "candidate"
         this.form = document.getElementById('customRouteForm'); // form element of custom route
         this.isGenerated = false; // determines if route has been generated or not
-        this.startingGeocoder;
-        this.curGeocoder;
-        this.additionalGeocoders = []; // might want to change this name to allGeocoders since it includes the starting Geocoder
         this.countAdditionalLocations = 0;
     }
 
@@ -24,13 +21,13 @@ export class CustomRoute {
         return this.retrieveMarkers()
     }
 
-
+    // TODO: fix or obsolete this unreachable function
     validateFormSubmission(){
-        if(this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation').value == ''){
+        if (this.markerList.length == 0) {
             alert('Please enter a valid starting location');
             return false;
         }
-        if(this.form.querySelector('.mapboxgl-ctrl-geocoder .additionalLocation1').value == ''){
+        if (this.markerList.length == 1) {
             alert('Please enter at least one additional location');
             return false;
         }
@@ -46,53 +43,9 @@ export class CustomRoute {
         return markers;
     }
 
-
-    get allGeocoders(){
-        return this.additionalGeocoders;
-    }
-
-
-    createInitialGeocoders(){
-        this.startingGeocoder = createGeocoder("Starting");
-        this.additionalGeocoders.push(this.startingGeocoder);
-        setGeocoder(this.startingGeocoder, "startingLocation");
-    }
-
-    
-    createAdditionalGeocoder(){
-        let additionalGeocoder = createGeocoder("Additional");
-        this.additionalGeocoders.push(additionalGeocoder);  
-        this.countAdditionalLocations++;
-        setGeocoder(additionalGeocoder, `additionalLocation${this.countAdditionalLocations}`);
-        initializeGeocoders([additionalGeocoder]);
-    }
-
-    // TODO: Band-aid fix for now, need to refactor this. Don't want to loop through all the geocoders
-    stackCurrentGeocoderTop(){
-        let startingGeocoderSection = this.form.querySelector(`.mapboxgl-ctrl-geocoder .startingLocation`).parentElement;
-        startingGeocoderSection.style.zIndex = '';
-        for(let i = 1; i <= this.countAdditionalLocations; i++){
-            let additionalGeocoderSection = this.form.querySelector(`.mapboxgl-ctrl-geocoder .additionalLocation${i}`).parentElement;
-            additionalGeocoderSection.style.zIndex = '';
-        }
-        let newGeocoderSection = document.activeElement.parentElement;
-        newGeocoderSection.style.zIndex = '10';
-    }
-
     
     #isStartingMarker(){
-        if(this.curGeocoder == this.startingGeocoder){
-            return true;
-        }
-        else if(this.curGeocoder != this.startingGeocoder && this.curGeocoder != null){
-            return false;
-        }
-        else if(this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation').value == ''){
-            return true;
-        }
-        else{
-            return false;
-        }
+        return this.markerList.length == 0;
     }
 
 
@@ -110,95 +63,37 @@ export class CustomRoute {
 
     saveMarker(eventClass){
         if (eventClass.contains('startingPoint')) {
-            if(this.curGeocoder == this.startingGeocoder){
-                const marker = createMarker(this.curStartMarkerBuff["coordinates"], this.curStartMarkerBuff["placeName"]);
-                this.markerList[0] = replaceMarker(this.markerList[0], this.curStartMarkerBuff, marker);
-                setDraggable(marker, this.markerList[0]);
-            }
-            else if(!this.isGenerated) {
+            if(!this.isGenerated) {
                 const marker = createMarker(this.curStartMarkerBuff["coordinates"], this.curStartMarkerBuff["placeName"]);
                 let markerValues = {'marker': marker, 'coordinates' : this.curStartMarkerBuff["coordinates"], placeName: this.curStartMarkerBuff["placeName"]};
                 this.markerList.push(markerValues);
                 setDraggable(marker, this.markerList[0]);
                 this.curStartMarkerBuff["marker"].remove();
-                this.createAdditionalGeocoder();
             }
-            const startingLocationInputs = this.form.querySelectorAll('.startingLocation');
-            startingLocationInputs.forEach(input => {
-                input.value = `${this.curStartMarkerBuff["placeName"]}`
-            });
             this.curStartMarkerBuff["marker"].togglePopup();
         }
 
         else if (eventClass.contains('additionalPoint')) {
             let popup = createPopup(this.curStartMarkerBuff["placeName"], "returnToStart");
             this.markerList[0]["marker"].setPopup(popup)
-
             const marker = createMarker(this.curAdditionalMarkerBuff["coordinates"], this.curAdditionalMarkerBuff["placeName"]);
-            let geocoderOrder = null;
-            if(this.markerList.length >= 2 && this.curGeocoder != null && this.additionalGeocoders[this.additionalGeocoders.length - 1] != this.curGeocoder) {
-                let curAdditionalMarkerDict = this.getMarkerDictBasedOnGeocoderOrder(this.curGeocoder);
-                curAdditionalMarkerDict = replaceMarker(curAdditionalMarkerDict, this.curAdditionalMarkerBuff, marker);
-                setDraggable(marker, curAdditionalMarkerDict);
-                geocoderOrder = this.additionalGeocoders.indexOf(this.curGeocoder);
-                this.markerList[geocoderOrder] = curAdditionalMarkerDict;
-            }
-            else {
-                let markerValues = {'marker': marker, 'coordinates' : this.curAdditionalMarkerBuff["coordinates"], placeName: this.curAdditionalMarkerBuff["placeName"]};
-                this.markerList.push(markerValues);
-                setDraggable(marker, this.markerList[this.markerList.length - 1]);
-                this.curAdditionalMarkerBuff["marker"].remove();
-                geocoderOrder = this.countAdditionalLocations;
-                this.createAdditionalGeocoder();
-            }
-            const additionalLocationInput = this.form.querySelectorAll(`.additionalLocation${geocoderOrder}`);
-            additionalLocationInput.forEach(input => {
-                input.value = `${this.curAdditionalMarkerBuff["placeName"]}`
-            });
+            let markerValues = {'marker': marker, 'coordinates' : this.curAdditionalMarkerBuff["coordinates"], placeName: this.curAdditionalMarkerBuff["placeName"]};
+            this.markerList.push(markerValues);
+            setDraggable(marker, this.markerList[this.markerList.length - 1]);
+            this.curAdditionalMarkerBuff["marker"].remove();
             calculateOptimizedRoute(false);
         }
-        this.curGeocoder = null;
     }
 
 
     updateLocationForm(marker, placeName){
-        let locationInput = this.getGeocoderBasedOnMarkerOrder(marker);
-        const isStarting = locationInput?.[0]?.classList.contains('startingLocation');
+        const isStarting = marker == this.markerList[0]['marker'];
         const isLastMarkerEqualToStart = this.markerList[this.markerList.length - 1]['marker'] == this.markerList[0]['marker'];
         const markerType = isStarting && !isLastMarkerEqualToStart ? "returnToStart" : null;
         let popup = createPopup(placeName, markerType);
         marker.setPopup(popup)
-
-        locationInput.forEach(input => {
-            input.value = `${placeName}`;
-        });
     }
 
-    getGeocoderBasedOnMarkerOrder(marker){
-        let markers = this.retrieveMarkers();
-        let markerOrder = markers.indexOf(marker);
-        if(markerOrder < 0){
-            return null;
-        }
-        if(markerOrder == 0){
-            return this.form.querySelectorAll(`.startingLocation`);
-        }
-        if(markerOrder > 0){
-            return this.form.querySelectorAll(`.additionalLocation${markerOrder}`);
-        }
-    }
-
-
-    getMarkerDictBasedOnGeocoderOrder(geocoder){
-        let geocoderOrder = this.additionalGeocoders.indexOf(geocoder);
-        if(geocoderOrder < 0){
-            return null;
-        }
-        return this.markerList[geocoderOrder];
-    }
-
-    // Change marker map to list to iterate by index. Makes more sense in terms of ordering the markers and the geocoders
-    // each index will have a dictionary/map, where there will be the marker, coordinate, and placeName
 
     getStartAndEnd(){
         let start = this.markerList[0]['coordinates'];
@@ -220,7 +115,6 @@ export class CustomRoute {
 
 
     clearForm(){
-        this.removeAdditionalGeocoders();
         this.form.reset();
         if(this.curStartMarkerBuff["marker"]){
             this.curStartMarkerBuff["marker"].remove();
@@ -235,14 +129,5 @@ export class CustomRoute {
         }
         this.markerList = [];
         this.isGenerated = false;
-    }
-
-
-    removeAdditionalGeocoders(){
-        for(let i = 1; i <= this.countAdditionalLocations; i++){
-            this.form.querySelector(`.additionalLocation${i}`).remove();
-        }
-        this.additionalGeocoders = [];
-        this.countAdditionalLocations = 0;
     }
 }

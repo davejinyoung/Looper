@@ -1,4 +1,4 @@
-import { createGeocoder, setGeocoder, initializeMarkerAndPopup, createMarker, removeExistingRouteLayer, replaceMarker, setDraggable, getPlaceName, createPopup, addPopupCloseButtonListener } from './mapbox.js';
+import { initializeMarkerAndPopup, createMarker, removeExistingRouteLayer, replaceMarker, setDraggable, getPlaceName, createPopup, addPopupCloseButtonListener } from './mapbox.js';
 
 export class RandomLoop{
 
@@ -10,8 +10,6 @@ export class RandomLoop{
         this.distance; // distance of route
         this.form = document.getElementById('randLoopForm'); // form element of random loop
         this.isGenerated = false; // determines if route has been generated or not
-        this.startingGeocoder;
-        this.curGeocoder;
     }
 
 
@@ -25,15 +23,8 @@ export class RandomLoop{
     }
 
 
-    get allGeocoders(){
-        return [this.startingGeocoder]
-    }
-
-
     validateFormSubmission(){
-        let startingLocationElem = this.form.querySelector('.mapboxgl-ctrl-geocoder .startingLocation');
-        if(startingLocationElem.querySelector('.suggestions') != null) return false;
-        if(startingLocationElem.value == ''){
+        if(this.markerList.length == 0){
             alert('Please enter a valid starting location');
             return false;
         }
@@ -53,18 +44,6 @@ export class RandomLoop{
             });
         }
         return markers;
-    }
-
-
-    createInitialGeocoders(){
-        this.startingGeocoder = createGeocoder("Starting");
-        setGeocoder(this.startingGeocoder, "startingLocation");
-    }
-
-
-    // TODO: Band-aid fix for now, need to refactor this
-    stackCurrentGeocoderTop(geocoder){
-        return null;
     }
 
 
