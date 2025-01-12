@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.template import Template, Context
 from django.template.loader import get_template
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
 from django.shortcuts import render, redirect
 from .forms import RegisterForm
 
@@ -13,7 +13,7 @@ def signup(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return redirect('/home')
     else:
         form = RegisterForm()

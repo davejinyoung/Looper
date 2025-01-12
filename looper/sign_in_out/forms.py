@@ -14,7 +14,8 @@ class RegisterForm(UserCreationForm):
         user = super().save(commit=False)
         if commit:
             user.save()
-            UserProfile.objects.create(user=user, address=self.cleaned_data['address'])
+            if not UserProfile.objects.filter(user=user).exists():
+                UserProfile.objects.create(user=user, address=self.cleaned_data['address'])
         return user
 
 class UserProfileForm(forms.ModelForm):

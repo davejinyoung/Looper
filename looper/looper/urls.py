@@ -23,5 +23,6 @@ urlpatterns = [
     path("", include("django.contrib.auth.urls")),
     path("", include("sign_in_out.urls")),
     path("", include("home.urls")),
+    path('accounts/', include('allauth.urls')),
     path('api/saved_routes/', views.saved_routes_api, name='saved_routes_api'),
 ]
