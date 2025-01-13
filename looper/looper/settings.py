@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 SITE_ID = 2
 
 INSTALLED_APPS = [
+    "django.contrib",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -150,6 +151,7 @@ STATICFILES_DIRS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
+    'looper.authentication_backends.EmailOrUsernameModelBackend',
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]

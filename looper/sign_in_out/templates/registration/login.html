@@ -1,15 +1,25 @@
 {% extends 'sign_in_out/base.html' %} {% block title %}Login{% endblock %}
 {% load crispy_forms_tags %} {% block content %}
 <form method="post" class="p-4">
-  {% csrf_token %}{{form|crispy}}
+  {% csrf_token %}
   {% load socialaccount %}
+  <div class="mb-3">
+    <label for="username" class="form-label">Username or Email</label>
+    <input type="text" class="form-control" id="username" name="username" placeholder="Your Email or Username" required>
+  </div>
+  <div class="mb-3">
+    <label for="password" class="form-label">Password</label>
+    <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+  </div>
+  <div class="login-buttons mb-2">
+    <button type="submit" class="btn btn-success">Login</button>
+    <button class="btn btn-outline-info">
+      <a href="{% provider_login_url 'google' %}?next=/home">
+        <i class="fab fa-google"></i>
+        Login with Google
+      </a>
+    </button>
+  </div>
   <p><em>Don't have an account? Create one <b><a href="/signup">Here</a></b>!</em></p>
-  <button type="submit" class="btn btn-success">Login</button>
-  <button class="btn btn-outline-info">
-    <a href="{% provider_login_url 'google' %}?next=/home">
-      <i class="fab fa-google"></i>
-      Login with Google
-    </a>
-  </button>
 </form>
 {% endblock %}
