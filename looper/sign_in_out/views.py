@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.template import Template, Context
 from django.template.loader import get_template
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from .forms import RegisterForm

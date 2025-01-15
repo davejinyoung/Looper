@@ -1,6 +1,20 @@
 {% extends 'sign_in_out/base.html' %} {% block title %}Login{% endblock %}
 {% load crispy_forms_tags %} {% block content %}
-<form method="post" class="p-4">
+<script src="https://accounts.google.com/gsi/client" async></script>
+<div id="g_id_onload"
+  data-client_id="587321958033-qh8g34ilo9u5pfvjgun9l0felachhgiu.apps.googleusercontent.com"
+  data-login_uri="http://127.0.0.1:8000/home"
+  data-auto_prompt="false">
+</div>
+<div class="g_id_signin"
+  data-type="standard"
+  data-size="large"
+  data-theme="outline"
+  data-text="sign_in_with"
+  data-shape="rectangular"
+  data-logo_alignment="left">
+</div>
+<form method="post" class="py-4 px-2">
   {% csrf_token %}
   {% load socialaccount %}
   <div class="mb-3">
@@ -11,15 +25,17 @@
     <label for="password" class="form-label">Password</label>
     <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
   </div>
-  <div class="login-buttons mb-2">
-    <button type="submit" class="btn btn-success">Login</button>
-    <button class="btn btn-outline-info">
-      <a href="{% provider_login_url 'google' %}?next=/home">
-        <i class="fab fa-google"></i>
-        Login with Google
-      </a>
-    </button>
+  <div class="login-buttons">
+    <div class="default-login-button">
+      <button type="submit" class="btn btn-success mb-2 w-100">Login</button>
+    </div>
+    <div class="google-login-button">
+        <a class="button btn btn-outline-info w-100" href="{% provider_login_url 'google' %}?next=/home">
+          <i class="fab fa-google"></i>
+          Sign in with Google
+        </a>
+    </div>
   </div>
-  <p><em>Don't have an account? Create one <b><a href="/signup">Here</a></b>!</em></p>
+  <p class="mt-3"><a href="/signup" style="text-decoration:none">Sign Up</a></p>
 </form>
 {% endblock %}
