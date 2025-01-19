@@ -81,7 +81,7 @@ ROOT_URLCONF = "looper.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / 'sign_in_out/templates'],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

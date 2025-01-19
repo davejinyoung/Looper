@@ -29,4 +29,3 @@ def login_view(request):
         else:
             messages.error(request, 'Invalid username or password.')
     return render(request, 'registration/login.html')
-
