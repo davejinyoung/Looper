@@ -17,10 +17,6 @@ import json
 def home(request):
     return render(request, 'home/home.html')
 
-@login_required(login_url="/login")
-def profile(request):
-    return render(request, 'home/profile.html')
-
 @api_view(['GET'])
 def saved_routes_api(request):
     routes = Route.objects.filter(user=request.user)
@@ -61,13 +57,15 @@ def profile_settings(request):
         if user_form.is_valid() and profile_form.is_valid():
             user_form.save()
             profile_form.save()
+            print('success')
             messages.success(request, 'Profile updated successfully')
-            return redirect('profile_settings')
     else:
+        print('no success')
         user_form = UserForm(instance=request.user)
         profile_form = UserProfileForm(instance=user_profile)
 
     return render(request, 'home/profile.html', {
         'user_form': user_form,
-        'profile_form': profile_form
+        'profile_form': profile_form,
+        'user_profile': user_profile
     })
