@@ -57,15 +57,11 @@ def profile_settings(request):
         if user_form.is_valid() and profile_form.is_valid():
             user_form.save()
             profile_form.save()
-            print('success')
             messages.success(request, 'Profile updated successfully')
     else:
-        print('no success')
         user_form = UserForm(instance=request.user)
         profile_form = UserProfileForm(instance=user_profile)
 
     return render(request, 'home/profile.html', {
-        'user_form': user_form,
-        'profile_form': profile_form,
         'user_profile': user_profile
     })
