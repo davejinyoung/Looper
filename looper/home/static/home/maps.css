@@ -1,17 +1,15 @@
 .map-container {
-  height: 94%;
+  height: 93%;
   display: grid;
-  grid-template-columns: 20% 89%;
+  grid-template-columns: 20% 79%;
   padding: 1%;
   gap: 1%;
 }
 
 .form-container {
-  height: 94%;
-  gap: 1%;
   display: grid;
-  grid-template-rows: auto 92%;
-  grid-template-columns: 100%;
+  gap: 2%;
+  grid-template-rows: min-content min-content;
 }
 
 .form-container > div {
