@@ -15,7 +15,10 @@ import json
 
 @login_required(login_url="/login")
 def home(request):
-    return render(request, 'home/home.html')
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    return render(request, 'home/home.html', {
+        'user_profile': user_profile
+    })
 
 @api_view(['GET'])
 def saved_routes_api(request):
@@ -65,3 +68,11 @@ def profile_settings(request):
     return render(request, 'home/profile.html', {
         'user_profile': user_profile
     })
+
+def user_profile_api(request):
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+    user_profile_data = {
+        'username': user_profile.user.username,
+        'address': user_profile.address,
+    }
+    return JsonResponse(user_profile_data, safe=False)

@@ -142,13 +142,6 @@ const geolocateControl = new mapboxgl.GeolocateControl({
 });
 map.addControl(geolocateControl);
 
-let curLocationButtons = document.querySelectorAll('.cur-location-btn');
-curLocationButtons.forEach(button => {
-    button.addEventListener('click', function(event){
-        geolocateControl.trigger();
-    });
-});
-
 // Script for finding current location
 geolocateControl.on('geolocate', (event) => {
     const coordinates = [event.coords.longitude, event.coords.latitude];
@@ -156,6 +149,40 @@ geolocateControl.on('geolocate', (event) => {
         setMarker(coordinates);
     }
 })
+
+Array.from(document.getElementsByClassName('home-address-btn')).forEach(button => {
+    button.addEventListener('click', function() {
+        fetch('/api/user_profile/')
+        .then(response => response.json())
+        .then(data => {
+            fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(data.address)}.json?access_token=${mapboxgl.accessToken}`)
+                .then(response => response.json())
+                .then(geocodingData => {
+                    if (geocodingData.features && geocodingData.features.length > 0) {
+                        const placeName = geocodingData.features[0].place_name;
+                        const coordinates = geocodingData.features[0].geometry.coordinates;
+                        console.log(`Place Name: ${placeName}, Coordinates: ${coordinates}`);
+                        // You can now use the place name and coordinates as needed
+                        setMarker(coordinates);
+                        map.flyTo({
+                            center: coordinates,
+                            zoom: 15, // Adjust the zoom level as needed
+                            essential: true // This animation is considered essential with respect to prefers-reduced-motion
+                        });
+                    } else {
+                        console.error('No results found');
+                    }
+                })
+                .catch(error => {
+                    console.error('Geocoding request failed:', error);
+                });
+
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+});
 
 // Script for location of clicked area on map
 map.on('click', (event) => {
