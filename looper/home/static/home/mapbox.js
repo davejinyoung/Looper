@@ -22,11 +22,24 @@ map.on('style.load', () => {
     map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
 });
 
+let routeType = new RandomLoop();
+showForm(routeType.form);
+let routeCoordinates = [];
+let popupEvent = false;
+
 document.addEventListener('DOMContentLoaded', function () {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl)
     })
+});
+
+document.querySelectorAll('.route-type-dropdown .dropdown-item').forEach(item => {
+  item.addEventListener('click', function (e) {
+    e.preventDefault(); // Prevent default anchor action
+    const selectedValue = this.getAttribute('data-value');
+    document.getElementById('dropdownMenuButton').textContent = selectedValue; // Update button text
+  });
 });
 
 var streetButton = document.createElement('streetButton');
@@ -61,10 +74,6 @@ streetButton.addEventListener('click', function() {
         }
     });
 });
-
-let routeType;
-let routeCoordinates = [];
-let popupEvent = false;
 
 // Script for selecting the type of route you want to create
 document.getElementById('randLoopButton').addEventListener('click', function() {
@@ -150,32 +159,34 @@ geolocateControl.on('geolocate', (event) => {
     }
 })
 
+// Setting marker on home address
 Array.from(document.getElementsByClassName('home-address-btn')).forEach(button => {
     button.addEventListener('click', function() {
         fetch('/api/user_profile/')
         .then(response => response.json())
         .then(data => {
-            fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(data.address)}.json?access_token=${mapboxgl.accessToken}`)
-                .then(response => response.json())
-                .then(geocodingData => {
-                    if (geocodingData.features && geocodingData.features.length > 0) {
-                        const placeName = geocodingData.features[0].place_name;
-                        const coordinates = geocodingData.features[0].geometry.coordinates;
-                        console.log(`Place Name: ${placeName}, Coordinates: ${coordinates}`);
-                        // You can now use the place name and coordinates as needed
-                        setMarker(coordinates);
-                        map.flyTo({
-                            center: coordinates,
-                            zoom: 15, // Adjust the zoom level as needed
-                            essential: true // This animation is considered essential with respect to prefers-reduced-motion
-                        });
-                    } else {
-                        console.error('No results found');
-                    }
-                })
-                .catch(error => {
-                    console.error('Geocoding request failed:', error);
-                });
+            if (data.address) {
+                fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(data.address)}.json?access_token=${mapboxgl.accessToken}`)
+                    .then(response => response.json())
+                    .then(geocodingData => {
+                        if (geocodingData.features && geocodingData.features.length > 0) {
+                            const coordinates = geocodingData.features[0].geometry.coordinates;
+                            setMarker(coordinates);
+                            map.flyTo({
+                                center: coordinates,
+                                zoom: 15,
+                                essential: true
+                            });
+                        } else {
+                            console.error('No results found');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Geocoding request failed:', error);
+                    });
+            } else {
+                alert('Please set your home address in your profile');
+            }
 
         })
         .catch(error => {
