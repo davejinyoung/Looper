@@ -3,6 +3,6 @@
 <form method="post" class="py-4 px-2">
   {% csrf_token %}{{form|crispy}}
   <p>Have an account? Login <a href="/login">Here</a>!</p>
-  <button type="submit" class="btn btn-success">Register</button>
+  <button type="submit" class="btn btn-success w-100">Register</button>
 </form>
 {% endblock %}
