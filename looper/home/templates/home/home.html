@@ -33,7 +33,7 @@
         {% block form-elements %}
         <div class="form-elements p-4">
           <div class="dropdown d-flex justify-content-center mb-4">
-            <button class="btn btn-primary dropdown-toggle" style="flex-grow: 1;" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">Randomize</button>
+            <button class="btn btn-primary dropdown-toggle w-100" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">Randomize</button>
             <ul class="dropdown-menu route-type-dropdown" aria-labelledby="dropdownMenuButton">
               <li>
                 <a id="randLoopButton" class="dropdown-item" data-value="Randomize" data-bs-toggle="tooltip" data-bs-title="Automatically Create a Randomized Looping Route">Randomize</a>
@@ -43,46 +43,42 @@
               </li>
             </ul>
           </div>
-
-            <div class="universalFormItems d-none" style="display: grid; grid-template-columns: 50% 50%;">
-              <div class="btn-group">
+            <div class="universalFormItems d-none w-100">
+              <div class="btn-group w-100">
                 <input class="btn-check" type="radio" name="exercise-options" id="runCheck" autocomplete="off" checked/>
-                <label class="btn btn-secondary btn-left" for="runCheck">
-                  <img class="routeTypeImg" src="https://pass-the-baton.nyc3.digitaloceanspaces.com/assets/running.png" width="15" height="15">
+                <label class="btn btn-secondary" for="runCheck">
                   Run / Walk
                 </label>
                 <input class="btn-check" type="radio" name="exercise-options" id="bikeCheck" autocomplete="off"/>
-                <label class="btn btn-secondary btn-right" for="bikeCheck">
-                  <img class="routeTypeImg" src="https://pass-the-baton.nyc3.digitaloceanspaces.com/assets/cycling.png" width="15" height="15">
+                <label class="btn btn-secondary" for="bikeCheck">
                   Bike
                 </label>
               </div>
             </div>
-
             <form id="randLoopForm" class="my-3">
             <div class="mb-3" style="display: grid; column-gap: 2%; grid-template-columns: 85% 13%;">
               <div class="geocoder"></div>
-              <button type="button" class="btn btn-primary home-address-btn" style="height: 100%; display: flex; align-items: center;" data-bs-toggle="tooltip" data-bs-title="Use Home Address">
+              <button type="button" class="btn btn-primary home-address-btn" style="height: 100%; display: flex; align-items: center; justify-content: center;" data-bs-toggle="tooltip" data-bs-title="Use Home Address">
                 <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12.9823 2.764C12.631 2.49075 12.4553 2.35412 12.2613 2.3016C12.0902 2.25526 11.9098 2.25526 11.7387 2.3016C11.5447 2.35412 11.369 2.49075 11.0177 2.764L4.23539 8.03912C3.78202 8.39175 3.55534 8.56806 3.39203 8.78886C3.24737 8.98444 3.1396 9.20478 3.07403 9.43905C3 9.70352 3 9.9907 3 10.5651V17.8C3 18.9201 3 19.4801 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.0799 21 6.2 21H8.2C8.48003 21 8.62004 21 8.727 20.9455C8.82108 20.8976 8.89757 20.8211 8.9455 20.727C9 20.62 9 20.48 9 20.2V13.6C9 13.0399 9 12.7599 9.10899 12.546C9.20487 12.3578 9.35785 12.2049 9.54601 12.109C9.75992 12 10.0399 12 10.6 12H13.4C13.9601 12 14.2401 12 14.454 12.109C14.6422 12.2049 14.7951 12.3578 14.891 12.546C15 12.7599 15 13.0399 15 13.6V20.2C15 20.48 15 20.62 15.0545 20.727C15.1024 20.8211 15.1789 20.8976 15.273 20.9455C15.38 21 15.52 21 15.8 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4801 21 19.2401 21 18.8V10.5651C21 9.9907 21 9.70352 20.926 9.43905C20.8604 9.20478 20.7526 8.98444 20.608 8.78886C20.4447 8.56806 20.218 8.39175 19.7646 8.03912L12.9823 2.764Z" fill="currentColor"/>
+                  <path d="M12.9823 2.764C12.631 2.49075 12.4553 2.35412 12.2613 2.3016C12.0902 2.25526 11.9098 2.25526 11.7387 2.3016C11.5447 2.35412 11.369 2.49075 11.0177 2.764L4.23539 8.03912C3.78202 8.39175 3.55534 8.56806 3.39203 8.78886C3.24737 8.98444 3.1396 9.20478 3.07403 9.43905C3 9.70352 3 9.9907 3 10.5651V17.8C3 18.9201 3 19.4801 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.0799 21 6.2 21H8.2C8.48003 21 8.62004 21 8.727 20.9455C8.82108 20.8976 8.89757 20.8211 8.9455 20.727C9 20.62 9 20.48 9 20.2V13.6C9 13.0399 9 12.7599 9.10899 12.546C9.20487 12.3578 9.35785 12.2049 9.54601 12.109C9.75992 12 10.0399 12 10.6 12H13.4C13.9601 12 14.2401 12 14.454 12.109C14.6422 12.2049 14.7951 12.3578 14.891 12.546C15 12.7599 15 13.0399 15 13.6V20.2C15 20.48 15 20.62 15.0545 20.727C15.1024 20.8211 15.1789 20.8976 15.273 20.9455C15.38 21 15.52 21 15.8 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4801 21 18.9201 21 17.8V10.5651C21 9.9907 21 9.70352 20.926 9.43905C20.8604 9.20478 20.7526 8.98444 20.608 8.78886C20.4447 8.56806 20.218 8.39175 19.7646 8.03913L12.9823 2.764Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </button> 
             </div>
-            <div class="mb-4" style="display: flex; column-gap: 5%;">
-              <div style="width: 20%;">
+            <div class="mb-4">
+              <div class="mb-3">
                 <label for="distance" class="form-label">Distance</label>
                 <input type="number" class="form-control" min="0" value="0" step=".1" id="distance">
               </div>
-              <div style="width: 100%;">
+              <div>
                 <label for="distanceAccuracy" class="form-label">Route Distance Accuracy</label>
                 <input type="range" class="form-range" min="0.45" max="0.95" step="0.05" id="distanceAccuracy">
               </div>
             </div>
-            <div class="btn-group mb-4" style="display: grid; grid-template-columns: 50% 50%; width: 50%;">
+            <div class="btn-group mb-4 w-100">
               <input class="btn-check" type="radio" name="routeRotation" id="clockwise" autocomplete="off" checked/>
-              <label class="btn btn-secondary btn-left" for="clockwise">Clockwise</label>
+              <label class="btn btn-secondary" for="clockwise">Clockwise</label>
               <input class="btn-check" type="radio" name="routeRotation" id="antiClockwise" autocomplete="off"/>
-              <label class="btn btn-secondary btn-right" for="antiClockwise">Anti-Clockwise</label>
+              <label class="btn btn-secondary" for="antiClockwise">Anti-Clockwise</label>
             </div>
 
             <div class="optionsButtons" style="display: grid; grid-template-columns: 60% 19% 19%; gap: 1%;">
@@ -94,7 +90,6 @@
               </button>
               <button class="btn btn-warning clear-btn" type="button" style="min-height: 2.5rem;">Reset</button>
             </div>
-
           </form>
 
           <form id="customRouteForm" class=" py-3 d-none">
@@ -102,7 +97,7 @@
               <div class="geocoder"></div>
               <button type="button" class="btn btn-primary home-address-btn" style="height: 100%; display: flex; align-items: center;" data-bs-toggle="tooltip" data-bs-title="Use Home Address">
                 <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12.9823 2.764C12.631 2.49075 12.4553 2.35412 12.2613 2.3016C12.0902 2.25526 11.9098 2.25526 11.7387 2.3016C11.5447 2.35412 11.369 2.49075 11.0177 2.764L4.23539 8.03912C3.78202 8.39175 3.55534 8.56806 3.39203 8.78886C3.24737 8.98444 3.1396 9.20478 3.07403 9.43905C3 9.70352 3 9.9907 3 10.5651V17.8C3 18.9201 3 19.4801 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.0799 21 6.2 21H8.2C8.48003 21 8.62004 21 8.727 20.9455C8.82108 20.8976 8.89757 20.8211 8.9455 20.727C9 20.62 9 20.48 9 20.2V13.6C9 13.0399 9 12.7599 9.10899 12.546C9.20487 12.3578 9.35785 12.2049 9.54601 12.109C9.75992 12 10.0399 12 10.6 12H13.4C13.9601 12 14.2401 12 14.454 12.109C14.6422 12.2049 14.7951 12.3578 14.891 12.546C15 12.7599 15 13.0399 15 13.6V20.2C15 20.48 15 20.62 15.0545 20.727C15.1024 20.8211 15.1789 20.8976 15.273 20.9455C15.38 21 15.52 21 15.8 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4801 21 19.2401 21 18.8V10.5651C21 9.9907 21 9.70352 20.926 9.43905C20.8604 9.20478 20.7526 8.98444 20.608 8.78886C20.4447 8.56806 20.218 8.39175 19.7646 8.03912L12.9823 2.764Z" fill="currentColor"/>
+                  <path d="M12.9823 2.764C12.631 2.49075 12.4553 2.35412 12.2613 2.3016C12.0902 2.25526 11.9098 2.25526 11.7387 2.3016C11.5447 2.35412 11.369 2.49075 11.0177 2.764L4.23539 8.03912C3.78202 8.39175 3.55534 8.56806 3.39203 8.78886C3.24737 8.98444 3.1396 9.20478 3.07403 9.43905C3 9.70352 3 9.9907 3 10.5651V17.8C3 18.9201 3 19.4801 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.0799 21 6.2 21H8.2C8.48003 21 8.62004 21 8.727 20.9455C8.82108 20.8976 8.89757 20.8211 8.9455 20.727C9 20.62 9 20.48 9 20.2V13.6C9 13.0399 9 12.7599 9.10899 12.546C9.20487 12.3578 9.35785 12.2049 9.54601 12.109C9.75992 12 10.0399 12 10.6 12H13.4C13.9601 12 14.2401 12 14.454 12.109C14.6422 12.2049 14.7951 12.3578 14.891 12.546C15 12.7599 15 13.0399 15 13.6V20.2C15 20.48 15 20.62 15.0545 20.727C15.1024 20.8211 15.1789 20.8976 15.273 20.9455C15.38 21 15.52 21 15.8 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4801 21 18.9201 21 17.8V10.5651C21 9.9907 21 9.70352 20.926 9.43905C20.8604 9.20478 20.7526 8.98444 20.608 8.78886C20.4447 8.56806 20.218 8.39175 19.7646 8.03913L12.9823 2.764Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </button> 
             </div>
