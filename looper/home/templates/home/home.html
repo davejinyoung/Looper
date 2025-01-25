@@ -116,23 +116,20 @@
           </div>
         </div>
         {% endblock %}
-        <div class="route-details">
-          <h3>Route Details</h3>
-          {% block route-details %}{% endblock %}
-          <div class="route-details-elements d-none">
-            <br>
+      </div>
+      <div id="map">
+        <div class="route-details-elements d-none" style="display: grid; grid-template-columns: 15% 85%;">
+          <div class="mx-4">
             <h6 id="route-distance"></h6>
             <h6 id="route-elevation-gain"></h6>
-            <br>
-            <div id="chart-container">
-              <div id="chart-inner-container">
-                  <canvas id="chart-canvas"></canvas>
-              </div>
+          </div>
+          <div class="h-100" id="chart-container">
+            <div id="chart-inner-container">
+              <canvas id="chart-canvas"></canvas>
             </div>
           </div>
         </div>
       </div>
-      <div id="map"></div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>

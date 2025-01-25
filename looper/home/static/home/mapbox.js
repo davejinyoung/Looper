@@ -451,7 +451,7 @@ export async function calculateOptimizedRoute(generateButtonClicked=true) {
                 return bounds.extend(coord);
             }, new mapboxgl.LngLatBounds(allCoordinates[0], allCoordinates[0]));
             map.fitBounds(bounds, {
-                padding: 40,
+                padding: { top: 60, bottom: 220, left: 120, right: 120 },
                 linear: true,
             });
         }
