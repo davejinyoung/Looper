@@ -253,8 +253,8 @@ function addEventListenersToElements(eventType, elements) {
 // Elements to attach the event listener to
 const elementsToAttach = [
     {'element': document.getElementById('generateRoute'), 'handler': () => calculateOptimizedRoute()},
-    {'element': document.getElementById('runCheck'), 'handler': () => calculateOptimizedRoute(false)},
-    {'element': document.getElementById('bikeCheck'), 'handler': () => calculateOptimizedRoute(false)},
+    {'element': document.getElementById('runCheck'), 'handler': () => {if (routeType.isGenerated) calculateOptimizedRoute(false)}},
+    {'element': document.getElementById('bikeCheck'), 'handler': () => {if (routeType.isGenerated) calculateOptimizedRoute(false)}}
 ];
 
 addEventListenersToElements('click', elementsToAttach);
