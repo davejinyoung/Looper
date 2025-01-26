@@ -42,6 +42,59 @@ document.querySelectorAll('.route-type-dropdown .dropdown-item').forEach(item =>
   });
 });
 
+function addResizeListener() {
+    const routeDetailsElements = document.querySelector('.route-details-elements');
+    const resizeHandle = document.querySelector('.resize-handle');
+    const collapseButton = document.querySelector('.collapse-button');
+
+    let isResizing = false;
+    let startY, startHeight;
+    let newHeight = 150;
+
+    if (resizeHandle) {
+        resizeHandle.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            startY = e.clientY;
+            startHeight = parseInt(document.defaultView.getComputedStyle(routeDetailsElements).height, 10);
+            document.body.style.cursor = 'ns-resize';
+            document.documentElement.style.userSelect = 'none'; // Prevent text selection
+        });
+    }
+
+    document.addEventListener('mousemove', function(e) {
+        if (!isResizing) return;
+        newHeight = startHeight + (startY - e.clientY);
+        if (newHeight > document.querySelector('#map').clientHeight ) {
+            newHeight = document.querySelector('#map').clientHeight;
+            return
+        };
+        if (newHeight < 70) {
+            newHeight = 70;
+            return;
+        }
+        routeDetailsElements.style.height = `${newHeight}px`;
+        document.getElementById('chart-canvas').style.height = `${newHeight}px`;
+    });
+
+    document.addEventListener('mouseup', function() {
+        startHeight = parseInt(document.defaultView.getComputedStyle(routeDetailsElements).height, 10);
+        isResizing = false;
+        document.body.style.cursor = 'default';
+        document.documentElement.style.userSelect = ''; // Re-enable text selection
+    });
+
+    if (collapseButton) {
+        collapseButton.addEventListener('click', function() {
+            console.log(routeDetailsElements.style.height)
+            if (routeDetailsElements.style.height == '0px') {
+                routeDetailsElements.style.height = `${newHeight}px`;
+            } else {
+                routeDetailsElements.style.height = '0px';
+            }
+        });
+    }
+};
+
 var streetButton = document.createElement('streetButton');
 streetButton.id = 'street-button';
 streetButton.innerHTML = 'Street View';
@@ -459,6 +512,7 @@ export async function calculateOptimizedRoute(generateButtonClicked=true) {
         let lineData = addRouteToMap();
         let elevationGain = updateElevationProfile(lineData);
         routeDetails(route, elevationGain);
+        addResizeListener();
         routeType.isGenerated = true;
         endLoadingAnimation();
     } catch (error) {
