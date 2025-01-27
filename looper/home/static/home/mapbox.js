@@ -42,7 +42,7 @@ document.querySelectorAll('.route-type-dropdown .dropdown-item').forEach(item =>
   });
 });
 
-function addResizeListener() {
+document.addEventListener('DOMContentLoaded', function(){
     const routeDetailsElements = document.querySelector('.route-details-elements');
     const resizeHandle = document.querySelector('.resize-handle');
     const collapseButton = document.querySelector('.collapse-button');
@@ -93,7 +93,7 @@ function addResizeListener() {
             }
         });
     }
-};
+});
 
 var streetButton = document.createElement('streetButton');
 streetButton.id = 'street-button';
@@ -213,7 +213,7 @@ geolocateControl.on('geolocate', (event) => {
 })
 
 // Setting marker on home address
-Array.from(document.getElementsByClassName('home-address-btn')).forEach(button => {
+Array.from(document.getElementsByClassName('home-button')).forEach(button => {
     button.addEventListener('click', function() {
         fetch('/api/user_profile/')
         .then(response => response.json())
@@ -512,7 +512,6 @@ export async function calculateOptimizedRoute(generateButtonClicked=true) {
         let lineData = addRouteToMap();
         let elevationGain = updateElevationProfile(lineData);
         routeDetails(route, elevationGain);
-        addResizeListener();
         routeType.isGenerated = true;
         endLoadingAnimation();
     } catch (error) {
