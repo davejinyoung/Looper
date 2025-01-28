@@ -47,14 +47,17 @@ export class RandomLoop{
     }
 
 
-    setMarkerWithCorrectType(coordinates, placeName){
-        if (!this.isGenerated){
-            this.curStartMarkerBuff = initializeMarkerAndPopup(this.curStartMarkerBuff, coordinates, placeName, "starting");
-            addPopupCloseButtonListener(this.curStartMarkerBuff);
-        } 
-        else {
-            this.candidateStartMarkerBuff = initializeMarkerAndPopup(this.candidateStartMarkerBuff, coordinates, placeName, "starting");
-        }
+    setMarkerWithCorrectType(coordinates, placeName) {
+        const markerBufferKey = this.isGenerated ? 'candidateStartMarkerBuff' : 'curStartMarkerBuff';
+        
+        this[markerBufferKey] = initializeMarkerAndPopup(
+            this[markerBufferKey], 
+            coordinates, 
+            placeName, 
+            "starting"
+        );
+        
+        addPopupCloseButtonListener(this[markerBufferKey]);
     }
 
 
@@ -80,6 +83,7 @@ export class RandomLoop{
                 this.clearMarkers();
                 this.markerList[0] = this.curStartMarkerBuff;
                 removeExistingRouteLayer();
+                this.isGenerated = false;
             }
         }
     }
