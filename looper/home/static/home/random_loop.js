@@ -190,9 +190,6 @@ export class RandomLoop{
         let basePoint = {'coordinates': startingCoords, 'angle': 0};
         for(let i = 0; i < numRandomWaypoints; i++) {
             let angle = legAngles[i] + basePoint['angle'];
-            if(document.getElementById('antiClockwise').checked){
-                angle = 360 - angle;
-            }
             let randWaypoint = this.inverseHaversine(basePoint['coordinates'], legDistances[i]/earthRadius, this.toRadians(angle));
             let newCoords = [randWaypoint['lng'], randWaypoint['lat']];
             let newMarker = createMarker(newCoords, null, null, false);
@@ -282,7 +279,6 @@ export class RandomLoop{
     reverseAllMarkersExceptStart() {
         let reversedList = this.markerList.slice(1).reverse();
         this.markerList = [this.markerList[0]].concat(reversedList);
-
     }
 
 

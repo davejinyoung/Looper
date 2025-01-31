@@ -311,7 +311,7 @@ const elementsToAttach = [
     {'element': document.getElementById('clockwise'), 'handler': () => {if (routeType.isGenerated) 
         routeType.reverseWaypoints(true)
         calculateOptimizedRoute(false);}},
-    {'element': document.getElementById('antiClockwise'), 'handler': () => {if (routeType.isGenerated && routeType instanceof RandomLoop) {
+    {'element': document.getElementById('counterClockwise'), 'handler': () => {if (routeType.isGenerated && routeType instanceof RandomLoop) {
         routeType.reverseWaypoints(false);
         calculateOptimizedRoute(false);}}}
 ];
