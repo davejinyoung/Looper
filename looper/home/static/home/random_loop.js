@@ -10,6 +10,7 @@ export class RandomLoop{
         this.distance; // distance of route
         this.form = document.getElementById('randLoopForm'); // form element of random loop
         this.isGenerated = false; // determines if route has been generated or not
+        this.isClockwise = true; // determines if route is clockwise or not
     }
 
 
@@ -263,6 +264,25 @@ export class RandomLoop{
         });
         waypointsList.push(this.curStartMarkerBuff['coordinates']);
         return waypointsList;
+    }
+
+
+    reverseWaypoints(clockwiseButton) {
+        if(!this.isClockwise && clockwiseButton) {
+            this.reverseAllMarkersExceptStart();
+            this.isClockwise = true;
+        }
+        else if(this.isClockwise && !clockwiseButton) {
+            this.reverseAllMarkersExceptStart();
+            this.isClockwise = false;
+        }
+    }
+
+
+    reverseAllMarkersExceptStart() {
+        let reversedList = this.markerList.slice(1).reverse();
+        this.markerList = [this.markerList[0]].concat(reversedList);
+
     }
 
 

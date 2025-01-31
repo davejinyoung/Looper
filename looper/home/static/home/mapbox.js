@@ -307,7 +307,13 @@ function addEventListenersToElements(eventType, elements) {
 const elementsToAttach = [
     {'element': document.getElementById('generateRoute'), 'handler': () => calculateOptimizedRoute()},
     {'element': document.getElementById('runCheck'), 'handler': () => {if (routeType.isGenerated) calculateOptimizedRoute(false)}},
-    {'element': document.getElementById('bikeCheck'), 'handler': () => {if (routeType.isGenerated) calculateOptimizedRoute(false)}}
+    {'element': document.getElementById('bikeCheck'), 'handler': () => {if (routeType.isGenerated) calculateOptimizedRoute(false)}},
+    {'element': document.getElementById('clockwise'), 'handler': () => {if (routeType.isGenerated) 
+        routeType.reverseWaypoints(true)
+        calculateOptimizedRoute(false);}},
+    {'element': document.getElementById('antiClockwise'), 'handler': () => {if (routeType.isGenerated && routeType instanceof RandomLoop) {
+        routeType.reverseWaypoints(false);
+        calculateOptimizedRoute(false);}}}
 ];
 
 addEventListenersToElements('click', elementsToAttach);
