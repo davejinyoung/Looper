@@ -37,12 +37,43 @@
   grid-template-areas:
     "handle handle"
     "numbers graph";
-  grid-template-columns: 25% 75%;
+  grid-template-columns: 23% 77%;
   background-color: rgba(255, 255, 255, 0.7);
   color: black; /* Text color */
   align-items: center;
   justify-content: center;
   z-index: 10;
+}
+
+.route-details {
+  display: grid;
+  grid-template-areas:
+    "distance elevation"
+    "direction direction";
+  grid-template-columns: 1fr 1fr;
+}
+
+#route-distance {
+  grid-area: distance;
+}
+
+#route-elevation-gain {
+  grid-area: elevation;
+}
+
+
+#route-direction {
+  grid-area: direction;
+}
+
+.route-details-value {
+  font-size: 1.75rem;
+  margin: 0;
+}
+
+.route-details-label {
+  font-size: 0.7rem;
+  margin: 0;
 }
 
 #chart-container {

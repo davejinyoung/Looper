@@ -577,13 +577,11 @@ clearButtons.forEach(button => {
 
 function routeDetails(route, elevationGain){
     const distance = route.distance / 1000.0;
-    const distanceElem = document.createTextNode(`Distance: ${distance.toFixed(2)} km`);
-    const elevationGainElem = document.createTextNode(`Elevation Gain: ${elevationGain.toFixed(0)} m`);
+    const distanceElem = `${distance.toFixed(2)} km`;
+    const elevationGainElem = `${elevationGain.toFixed(0)} m`;
     document.querySelector('.route-details-elements').classList.remove("d-none");
-    document.getElementById('route-distance').innerHTML = "";
-    document.getElementById('route-distance').appendChild(distanceElem);
-    document.getElementById('route-elevation-gain').innerHTML = "";
-    document.getElementById('route-elevation-gain').appendChild(elevationGainElem);
+    document.getElementById('route-distance-value').textContent = distanceElem;
+    document.getElementById('route-elevation-gain-value').textContent = elevationGainElem;
 }
 
 function addMarkersToMap(){

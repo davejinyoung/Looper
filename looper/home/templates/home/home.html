@@ -121,9 +121,15 @@
           <div class="resize-handle">
           </div>
           <div class="route-details mx-4 my-4">
-            <h6 id="route-distance"></h6>
-            <h6 id="route-elevation-gain"></h6>
-            <div class="btn-group mb-4 w-100">
+            <div id="route-distance">
+              <div id="route-distance-value" class="route-details-value"></div>
+              <div class="route-details-label">Distance</div>
+            </div>
+            <div id="route-elevation-gain">
+              <div id="route-elevation-gain-value" class="route-details-value"></div>
+              <div class="route-details-label">Elevation Gain</div>
+            </div>
+            <div id="route-direction" class="btn-group mb-4 my-3 w-100">
               <input class="btn-check" type="radio" name="routeRotation" id="clockwise" autocomplete="off" checked/>
               <label class="btn btn-secondary" for="clockwise">CW</label>
               <input class="btn-check" type="radio" name="routeRotation" id="counterClockwise" autocomplete="off"/>
